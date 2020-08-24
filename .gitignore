@@ -1,0 +1,7 @@
+.classpath
+.project
+.settings
+dynamic_resources
+node_modules
+target
+with-sockjs/.idea/
