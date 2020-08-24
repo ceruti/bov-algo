@@ -61,13 +61,14 @@ public class BovadaConnector {
                     System.out.println("Message Sent: " + payload);
                 }else if(method.equalsIgnoreCase("Network.webSocketFrameReceived")){
                     System.out.println("Message Received: " + payload);
-                    this.template.convertAndSend("/app/all", payload);
+//                    this.template.convertAndSend("/app/all", payload);
+                    this.template.convertAndSend("/topic/all", payload);
                     Map<String, String> message = new HashMap<>();
                     message.put("author", "bov-boy");
                     message.put("authorId", "GZ0Ut7zC4mKHfeEmQx0ZnloZxIH8J4Lh");
                     message.put("message", payload);
                     message.put("timestamp", Long.toString(System.currentTimeMillis()));
-                    chatHistoryDao.save(message);
+//                    chatHistoryDao.save(message); TODO: uncomment this?
 
                 }
             } catch (Exception e) {
