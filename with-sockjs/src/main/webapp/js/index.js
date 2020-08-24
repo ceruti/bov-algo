@@ -26,8 +26,11 @@ class App extends React.Component {
   }
 
   sendMessage = (msg, selfMsg) => {
+    console.log('sendMessage()...')
     try {
-      this.clientRef.sendMessage("/app/all", JSON.stringify(selfMsg));
+      let selfMsg1 = JSON.stringify(selfMsg);
+      console.log(selfMsg1);
+      this.clientRef.sendMessage("/app/all", selfMsg1);
       return true;
     } catch(e) {
       return false;
@@ -46,9 +49,17 @@ class App extends React.Component {
     const wsSourceUrl = window.location.protocol + "//" + window.location.host + "/handler";
     return (
       <div>
-        <TalkBox topic="react-websocket-template" currentUserId={ this.randomUserId }
-          currentUser={ this.randomUserName } messages={ this.state.messages }
-          onSendMessage={ this.sendMessage } connected={ this.state.clientConnected }/>
+        <h1>Bov</h1>
+        {/*<TalkBox topic="react-websocket-template" currentUserId={ this.randomUserId }*/}
+        {/*  currentUser={ this.randomUserName } messages={ this.state.messages }*/}
+        {/*  onSendMessage={ this.sendMessage } connected={ this.state.clientConnected }/>*/}
+        {
+          <div>
+            {this.state.messages.map(message => {
+              return <p>{message.message}</p>
+            })}
+          </div>
+        }
 
         <SockJsClient url={ wsSourceUrl } topics={["/topic/all"]}
           onMessage={ this.onMessageReceive } ref={ (client) => { this.clientRef = client }}
