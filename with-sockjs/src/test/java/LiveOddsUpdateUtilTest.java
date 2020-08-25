@@ -432,7 +432,7 @@ public class LiveOddsUpdateUtilTest {
             "      }";
 
     @BeforeEach
-    public void parseEvent() {
+    public void parseEvent() throws Exception {
         JSONObject eventJSON = new JSONObject(LAKERS_BLAZERS_EVENT_INIT);
         this.event = EventParseUtil.parseEvent(eventJSON);
     }
@@ -474,7 +474,7 @@ public class LiveOddsUpdateUtilTest {
                 "}\"";
 
     @Test
-    public void testUpdateOdds_Sorin() {
+    public void testUpdateOdds_Sorin() throws Exception {
         JSONObject eventJSON = new JSONObject(SORIN_MATCH_EVENT);
         this.sorinEvent = EventParseUtil.parseEvent(eventJSON);
         Market moneyLineMarket = this.sorinEvent.getMarkets().get("125711661");

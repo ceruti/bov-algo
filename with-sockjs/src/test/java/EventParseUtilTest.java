@@ -1,5 +1,6 @@
 import lahsivjar.spring.websocket.template.util.EventParseUtil;
 import lahsivjar.spring.websocket.template.model.Event;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -202,7 +203,7 @@ public class EventParseUtilTest {
             "         }";
 
     @Test
-    public void testParseEvent() {
+    public void testParseEvent() throws JSONException {
         JSONObject eventJSON = new JSONObject(eventJson);
         Event event = EventParseUtil.parseEvent(eventJSON);
         System.out.println("done");
