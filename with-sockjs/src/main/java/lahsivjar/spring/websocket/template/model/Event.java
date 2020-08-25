@@ -23,6 +23,11 @@ public class Event {
     private int competitionId;
     private Map<String, Market> markets;
     private String gameStatus;
+    private Date lastUpdated;
+
+    public void markUpdated() {
+        lastUpdated = new Date();
+    }
 
     // TODO: add lines here
 

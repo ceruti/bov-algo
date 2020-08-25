@@ -22,7 +22,9 @@ public class LiveOddsUpdateService {
         for (Long eventId : eventIds) {
             if (eventId != null && this.eventBook.getBook().containsKey(eventId)) {
                 Event existingEvent = this.eventBook.getBook().get(eventId);
-                LiveOddsUpdateUtil.updateEvent(existingEvent, wireMessage);
+                if (LiveOddsUpdateUtil.updateEvent(existingEvent, wireMessage)) {
+                    existingEvent.markUpdated();
+                }
             }
         }
     }
