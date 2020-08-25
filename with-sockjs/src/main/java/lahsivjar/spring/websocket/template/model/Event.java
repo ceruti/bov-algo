@@ -27,7 +27,7 @@ public class Event {
     private Date createdAt;
 
     public Event() {
-        this.createdAt = new Date();
+
     }
 
     public void markUpdated() {
