@@ -15,4 +15,6 @@ public class Outcome {
     private Price price;
     private List<Price> previousPrices;
 
+    private String opposingOutcomeId;
+
 }

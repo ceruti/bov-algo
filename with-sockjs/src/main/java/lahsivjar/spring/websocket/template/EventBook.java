@@ -13,6 +13,8 @@ public class EventBook {
 
     private NullAwareBeanUtilsBean nullAwareBeanUtilsBean;
 
+    private boolean enableUpdates = true;
+
     @Autowired
     public EventBook(NullAwareBeanUtilsBean nullAwareBeanUtilsBean) {
         this.nullAwareBeanUtilsBean = nullAwareBeanUtilsBean;
@@ -37,5 +39,13 @@ public class EventBook {
     public void updateEvent(Event event) throws InvocationTargetException, IllegalAccessException {
         Event existingEvent = book.get(event.getId());
         nullAwareBeanUtilsBean.updateEvent(existingEvent, event);
+    }
+
+    public boolean isEnableUpdates() {
+        return enableUpdates;
+    }
+
+    public void setEnableUpdates(boolean enableUpdates) {
+        this.enableUpdates = enableUpdates;
     }
 }

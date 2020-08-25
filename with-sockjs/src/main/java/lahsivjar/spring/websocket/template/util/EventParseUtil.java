@@ -51,9 +51,15 @@ public class EventParseUtil {
     protected static void setOutcomes(JSONObject marketJSONObj, Market market) {
         Map<String, Outcome> outcomes = new HashMap<>();
         JSONArray outcomeArrJSON = marketJSONObj.getJSONArray("outcomes");
+        boolean twoOutcomes = outcomeArrJSON.length() == 2;
         for (int k=0; k<outcomeArrJSON.length(); k++) {
             JSONObject outcomeJSON = outcomeArrJSON.getJSONObject(k);
             Outcome outcome = new Outcome();
+            if (twoOutcomes) {
+                int opposingOutcomeIndex = k==0 ? 1 : 0;
+                String opposingOutcomeId = outcomeArrJSON.getJSONObject(opposingOutcomeIndex).getString("id");
+                outcome.setOpposingOutcomeId(opposingOutcomeId);
+            }
             setBaseFields(outcomeJSON, outcome);
             setPrice(outcomeJSON, outcome);
             outcomes.put(outcome.getId(), outcome);

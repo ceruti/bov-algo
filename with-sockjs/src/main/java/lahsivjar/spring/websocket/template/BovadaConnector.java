@@ -33,15 +33,19 @@ public class BovadaConnector {
 
     private RestTemplate restTemplate = new RestTemplate();
 
+    private EventBook eventBook;
+
     @Autowired
     public BovadaConnector(SimpMessagingTemplate template,
                            ChatHistoryDao chatHistoryDao,
                            EventInitializerService eventInitializerService,
-                           LiveOddsUpdateService liveOddsUpdateService) throws InterruptedException {
+                           LiveOddsUpdateService liveOddsUpdateService,
+                           EventBook eventBook) throws InterruptedException {
         this.template = template;
         this.chatHistoryDao = chatHistoryDao;
         this.eventInitializerService = eventInitializerService;
         this.liveOddsUpdateService = liveOddsUpdateService;
+        this.eventBook = eventBook;
         System.setProperty("webdriver.chrome.driver", "/Users/marc.ceruti/drivers/chromedriver");
         LoggingPreferences loggingprefs = new LoggingPreferences();
         loggingprefs.enable(LogType.PERFORMANCE, Level.ALL);
@@ -61,6 +65,9 @@ public class BovadaConnector {
 
     @Scheduled(fixedDelay = 50)
     public void funnelMessages() {
+        if (!eventBook.isEnableUpdates()) {
+            return;
+        }
         LogEntries logEntries = driver.manage().logs().get(LogType.PERFORMANCE);
         logEntries.forEach(entry->{
             JSONObject messageJSON = new JSONObject(entry.getMessage());
