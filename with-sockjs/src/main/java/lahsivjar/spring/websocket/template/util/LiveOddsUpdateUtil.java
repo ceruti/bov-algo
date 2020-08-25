@@ -17,6 +17,9 @@ public class LiveOddsUpdateUtil {
     public static Long getEventId(String rawMessage) {
         if (rawMessage.contains("}|{")) {
             WireMessage wireMessage = isType1(rawMessage) ? new WireMessageType1(rawMessage) : new WireMessageType2(rawMessage);
+            if (!wireMessage.getType().equalsIgnoreCase("outcome")) {
+                return null;
+            }
             return wireMessage.getEventId();
         }
         return null;
@@ -34,6 +37,9 @@ public class LiveOddsUpdateUtil {
         boolean updated = false;
         if (rawMessage.contains("}|{")) {
             WireMessage wireMessage = isType1(rawMessage) ? new WireMessageType1(rawMessage) : new WireMessageType2(rawMessage);
+            if (!wireMessage.getType().equalsIgnoreCase("outcome")) {
+                return false;
+            }
             if (toUpdate.getMarkets() != null) {
                 for (Market market : toUpdate.getMarkets().values()) {
                     if (market.getOutcomes() != null
@@ -77,6 +83,8 @@ public class LiveOddsUpdateUtil {
         Long getEventId();
 
         void setDescription(String newDescription);
+
+        String getType();
     }
 
     @Data
@@ -179,6 +187,11 @@ public class LiveOddsUpdateUtil {
         @Override
         public void setDescription(String newDescription) {
             // do nothing
+        }
+
+        @Override
+        public String getType() {
+            return outcomeSlice.getString("type");
         }
     }
 
