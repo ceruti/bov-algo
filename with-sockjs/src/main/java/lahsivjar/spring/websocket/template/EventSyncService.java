@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.List;
 
 @Component
 public class EventSyncService {
@@ -17,6 +18,12 @@ public class EventSyncService {
     public EventSyncService(EventRepository eventRepository, EventBook eventBook) {
         this.eventRepository = eventRepository;
         this.eventBook = eventBook;
+
+        List<Event> events = this.eventRepository.findAll();
+        for (Event event : events) {
+            this.eventBook.getBook().put(event.getId(), event);
+        }
+        System.out.println("Event book initialized from database.");
     }
 
     @Scheduled(fixedDelay = 10000)

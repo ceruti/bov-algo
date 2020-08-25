@@ -55,7 +55,7 @@ public class BovadaConnector {
 
         driver = new ChromeDriver(cap);
 
-        driver.navigate().to("https://www.bovada.lv/sports");
+        driver.navigate().to("https://www.bovada.lv/sports/live");
         Thread.sleep(5000);
     }
 

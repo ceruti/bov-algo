@@ -46,7 +46,7 @@ public class EventInitializerService {
             JSONArray events = parentEl.getJSONArray("events");
             for (int j=0; j<events.length(); j++) {
                 JSONObject event = events.getJSONObject(j);
-                Integer id = Integer.parseInt(event.getString("id"));
+                Long id = Long.parseLong(event.getString("id"));
                 Event parsedEvent = EventParseUtil.parseEvent(event);
                 if (eventBook.getBook().containsKey(id)) {
                     eventBook.updateEvent(parsedEvent);
