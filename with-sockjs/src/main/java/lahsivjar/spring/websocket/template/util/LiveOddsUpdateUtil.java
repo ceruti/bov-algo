@@ -1,11 +1,9 @@
 package lahsivjar.spring.websocket.template.util;
 
-import lahsivjar.spring.websocket.template.model.Event;
-import lahsivjar.spring.websocket.template.model.Market;
-import lahsivjar.spring.websocket.template.model.Outcome;
-import lahsivjar.spring.websocket.template.model.Price;
+import lahsivjar.spring.websocket.template.model.*;
 import lombok.Data;
 import org.apache.commons.text.StringEscapeUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.*;
@@ -20,8 +18,13 @@ public class LiveOddsUpdateUtil {
             }
             return Collections.singletonList(wireMessage.getEventId());
         } else {
-            // TODO: implement
-            return null;
+            JSONArray eventUpdates = new JSONArray(rawMessage);
+            List<Long> eventIds = new ArrayList<>();
+            for (int i=0; i<eventUpdates.length(); i++) {
+                JSONObject eventUpdate = eventUpdates.getJSONObject(i);
+                eventIds.add(eventUpdate.getLong("eventId"));
+            }
+            return eventIds;
         }
     }
 
@@ -50,8 +53,46 @@ public class LiveOddsUpdateUtil {
                     }
                 }
             }
+        } else {
+            JSONArray eventUpdates = new JSONArray(rawMessage);
+            for (int i=0; i<eventUpdates.length(); i++) {
+                JSONObject eventUpdate = eventUpdates.getJSONObject(i);
+                if (eventUpdate.getLong("eventId") == toUpdate.getId()) {
+                    return updateEvent(toUpdate, eventUpdate);
+                }
+            }
         }
         return updated;
+    }
+
+    private static boolean updateEvent(Event toUpdate, JSONObject eventUpdate) {
+        if (eventUpdate.has("sport")) {
+            toUpdate.setSport(eventUpdate.getString("sport"));
+        }
+        if (eventUpdate.has("latestScore")) {
+            JSONObject latestScore = eventUpdate.getJSONObject("latestScore");
+            toUpdate.setVisitorScore(latestScore.getString("visitor"));
+            toUpdate.setHomeScore(latestScore.getString("home"));
+        }
+        if (eventUpdate.has("gameStatus")) {
+            toUpdate.setGameStatus(eventUpdate.getString("gameStatus"));
+        }
+        updateClock(toUpdate, eventUpdate);
+        System.out.println(String.format("[event %d] Updated event: %s", toUpdate.getId(), toUpdate.getDescription()));
+        return true;
+    }
+
+    private static void updateClock(Event toUpdate, JSONObject eventUpdate) {
+        // clock
+        JSONObject clockUpdate = eventUpdate.getJSONObject("clock");
+        if (clockUpdate != null) {
+            Clock clock = new Clock();
+            clock.setPeriod(clockUpdate.getString("period"));
+            clock.setPeriodNumber(clockUpdate.getInt("periodNumber"));
+            clock.setGameTime(clockUpdate.getString("gameTime"));
+            clock.setTicking(clockUpdate.getBoolean("isTicking"));
+            toUpdate.setClock(clock);
+        }
     }
 
     private static boolean updateOutcome(WireMessage wireMessage, Market market, long eventId) {

@@ -11,8 +11,8 @@ public class Event {
 
     @Id
     private long id;
-    private int homeScore;
-    private int visitorScore;
+    private String homeScore;
+    private String visitorScore;
 //    private Date vendorLastUpdated;
     private Clock clock;
     private String sport;
@@ -22,6 +22,7 @@ public class Event {
     private boolean live;
     private int competitionId;
     private Map<String, Market> markets;
+    private String gameStatus;
 
     // TODO: add lines here
 
