@@ -4,14 +4,18 @@ import lahsivjar.spring.websocket.template.model.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
 public class EventBook {
 
+    private NullAwareBeanUtilsBean nullAwareBeanUtilsBean;
+
     @Autowired
-    public EventBook() {
+    public EventBook(NullAwareBeanUtilsBean nullAwareBeanUtilsBean) {
+        this.nullAwareBeanUtilsBean = nullAwareBeanUtilsBean;
         book = new HashMap<>();
     }
 
@@ -26,10 +30,11 @@ public class EventBook {
     }
 
     public void addEvent(Event event) {
-        // TODO: implement
+        book.put(event.getId(), event);
     }
 
-    public void updateEvent(Event event) {
-        // TODO: implement
+    public void updateEvent(Event event) throws InvocationTargetException, IllegalAccessException {
+        Event existingEvent = book.get(event.getId());
+        nullAwareBeanUtilsBean.updateEvent(existingEvent, event);
     }
 }

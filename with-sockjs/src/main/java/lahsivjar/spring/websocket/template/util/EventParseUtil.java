@@ -1,4 +1,4 @@
-package lahsivjar.spring.websocket.template;
+package lahsivjar.spring.websocket.template.util;
 
 import lahsivjar.spring.websocket.template.model.*;
 import org.json.JSONArray;
@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EventParseUtil {
+    
 
     public static Event parseEvent(JSONObject eventJSONObject) {
         Event event = new Event();

@@ -1,4 +1,4 @@
-import lahsivjar.spring.websocket.template.EventParseUtil;
+import lahsivjar.spring.websocket.template.util.EventParseUtil;
 import lahsivjar.spring.websocket.template.model.Event;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;

@@ -1,12 +1,14 @@
 package lahsivjar.spring.websocket.template;
 
 import lahsivjar.spring.websocket.template.model.Event;
+import lahsivjar.spring.websocket.template.util.EventParseUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,11 +30,15 @@ public class EventInitialzerService {
 
     public void syncEventsAsync(String url) {
         executorService.submit(() -> {
-            syncEvent(url);
+            try {
+                syncEvent(url);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
     }
 
-    private void syncEvent(String url) {
+    private void syncEvent(String url) throws InvocationTargetException, IllegalAccessException {
         String eventsJSON = restTemplate.getForObject(url, String.class);
         JSONArray parentJSON = new JSONArray(eventsJSON);
         for (int i=0; i<parentJSON.length(); i++) {
