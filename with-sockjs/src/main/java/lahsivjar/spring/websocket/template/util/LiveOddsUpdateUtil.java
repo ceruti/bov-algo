@@ -8,21 +8,21 @@ import lombok.Data;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class LiveOddsUpdateUtil {
 
-    public static Long getEventId(String rawMessage) {
+    public static Collection<Long> getEventIds(String rawMessage) {
         if (rawMessage.contains("}|{")) {
             WireMessage wireMessage = isType1(rawMessage) ? new WireMessageType1(rawMessage) : new WireMessageType2(rawMessage);
             if (!wireMessage.getType().equalsIgnoreCase("outcome")) {
                 return null;
             }
-            return wireMessage.getEventId();
+            return Collections.singletonList(wireMessage.getEventId());
+        } else {
+            // TODO: implement
+            return null;
         }
-        return null;
     }
 
     private static boolean isType1(String rawMessage) {

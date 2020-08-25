@@ -439,7 +439,7 @@ public class LiveOddsUpdateUtilTest {
 
     @Test
     public void testGetEventId() {
-        Long eventId = LiveOddsUpdateUtil.getEventId(LAKERS_MONEY_LINE_WIRE_UPEATE);
+        Long eventId = LiveOddsUpdateUtil.getEventIds(LAKERS_MONEY_LINE_WIRE_UPEATE).iterator().next();
         Assertions.assertEquals(7625799, eventId);
     }
 
@@ -480,7 +480,7 @@ public class LiveOddsUpdateUtilTest {
         Market moneyLineMarket = this.sorinEvent.getMarkets().get("125711661");
         Outcome sorinWinsOutcome = moneyLineMarket.getOutcomes().get("674941357");
         Assertions.assertEquals(-305, sorinWinsOutcome.getPrice().getAmerican());
-        Long eventId = LiveOddsUpdateUtil.getEventId(SORIN_ODDS_UPDATE);
+        Long eventId = LiveOddsUpdateUtil.getEventIds(SORIN_ODDS_UPDATE).iterator().next();
         Assertions.assertEquals(7632283, eventId);
         LiveOddsUpdateUtil.updateEvent(sorinEvent, SORIN_ODDS_UPDATE);
         Assertions.assertEquals(-400, sorinWinsOutcome.getPrice().getAmerican());
