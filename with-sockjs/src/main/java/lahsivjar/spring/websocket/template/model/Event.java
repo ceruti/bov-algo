@@ -24,6 +24,11 @@ public class Event {
     private Map<String, Market> markets;
     private String gameStatus;
     private Date lastUpdated;
+    private Date createdAt;
+
+    public Event() {
+        this.createdAt = new Date();
+    }
 
     public void markUpdated() {
         lastUpdated = new Date();
