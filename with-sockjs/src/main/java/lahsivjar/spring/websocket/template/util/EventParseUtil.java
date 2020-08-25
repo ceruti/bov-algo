@@ -73,7 +73,12 @@ public class EventParseUtil {
     protected static void setPrice(JSONObject outcomeJSON, Outcome outcome) {
         Price price = new Price();
         JSONObject jsonPrice = outcomeJSON.getJSONObject("price");
-        price.setAmerican(Integer.parseInt(jsonPrice.getString("american")));
+        String american = jsonPrice.getString("american");
+        if (american.equalsIgnoreCase("EVEN")) {
+            price.setAmerican(100);
+        } else {
+            price.setAmerican(Integer.parseInt(american));
+        }
         price.setId(jsonPrice.getString("id"));
         outcome.setPrice(price);
     }

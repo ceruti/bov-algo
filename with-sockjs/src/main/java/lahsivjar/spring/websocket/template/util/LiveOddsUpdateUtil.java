@@ -37,6 +37,7 @@ public class LiveOddsUpdateUtil {
                             && market.getOutcomes().containsKey(wireMessage.getOutcomeId())) {
                         Outcome outcomeToUpdate = market.getOutcomes().get(wireMessage.getOutcomeId());
                         outcomeToUpdate.getPrice().setAmerican(wireMessage.getAmericanOdds());
+                        System.out.println(String.format("Updated odds: %s %d", wireMessage.getDescription(), wireMessage.getAmericanOdds()));
                         updated = true;
                     }
                 }
@@ -71,6 +72,9 @@ public class LiveOddsUpdateUtil {
                 JSONObject price = oddsSlice.getJSONObject("price");
                 if (price.has("american")) {
                     String american = price.getString("american");
+                    if (american.equalsIgnoreCase("EVEN")) {
+                        return 100;
+                    }
                     return Integer.parseInt(american);
                 }
             }
@@ -82,6 +86,13 @@ public class LiveOddsUpdateUtil {
                 return outcomeSlice.getString("id");
             }
             return null;
+        }
+
+        String getDescription() {
+            if (oddsSlice.has("description")) {
+                return oddsSlice.getString("description");
+            }
+            return "";
         }
     }
 

@@ -55,7 +55,6 @@ public class EventInitializerService {
                 }
             }
         }
-        System.out.println("here");
     }
 
 }

@@ -30,6 +30,7 @@ public class EventBook {
     }
 
     public void addEvent(Event event) {
+        System.out.println("New event found: " + event.getDescription());
         book.put(event.getId(), event);
     }
 
