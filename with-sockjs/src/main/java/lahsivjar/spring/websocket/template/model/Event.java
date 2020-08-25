@@ -8,7 +8,7 @@ import java.util.Map;
 @Data
 public class Event {
 
-    private int id;
+    private long id;
     private int homeScore;
     private int visitorScore;
 //    private Date vendorLastUpdated;

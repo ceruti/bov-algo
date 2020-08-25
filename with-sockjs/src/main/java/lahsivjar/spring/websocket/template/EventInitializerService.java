@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Component
-public class EventInitialzerService {
+public class EventInitializerService {
 
     private RestTemplate restTemplate;
 
@@ -22,7 +22,7 @@ public class EventInitialzerService {
     private EventBook eventBook;
 
     @Autowired
-    public EventInitialzerService(EventBook eventBook) {
+    public EventInitializerService(EventBook eventBook) {
         this.eventBook = eventBook;
         restTemplate = new RestTemplate();
         executorService = Executors.newFixedThreadPool(5);

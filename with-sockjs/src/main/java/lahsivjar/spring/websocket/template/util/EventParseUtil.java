@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EventParseUtil {
-    
+
 
     public static Event parseEvent(JSONObject eventJSONObject) {
         Event event = new Event();

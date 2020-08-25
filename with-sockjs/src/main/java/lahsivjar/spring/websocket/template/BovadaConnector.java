@@ -1,6 +1,5 @@
 package lahsivjar.spring.websocket.template;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -9,7 +8,6 @@ import org.openqa.selenium.logging.LogType;
 import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -29,15 +27,21 @@ public class BovadaConnector {
 
     private ChatHistoryDao chatHistoryDao;
 
-    private EventInitialzerService eventInitialzerService;
+    private EventInitializerService eventInitializerService;
+
+    private LiveOddsUpdateService liveOddsUpdateService;
 
     private RestTemplate restTemplate = new RestTemplate();
 
     @Autowired
-    public BovadaConnector(SimpMessagingTemplate template, ChatHistoryDao chatHistoryDao, EventInitialzerService eventInitialzerService) throws InterruptedException {
+    public BovadaConnector(SimpMessagingTemplate template,
+                           ChatHistoryDao chatHistoryDao,
+                           EventInitializerService eventInitializerService,
+                           LiveOddsUpdateService liveOddsUpdateService) throws InterruptedException {
         this.template = template;
         this.chatHistoryDao = chatHistoryDao;
-        this.eventInitialzerService = eventInitialzerService;
+        this.eventInitializerService = eventInitializerService;
+        this.liveOddsUpdateService = liveOddsUpdateService;
         System.setProperty("webdriver.chrome.driver", "/Users/marc.ceruti/drivers/chromedriver");
         LoggingPreferences loggingprefs = new LoggingPreferences();
         loggingprefs.enable(LogType.PERFORMANCE, Level.ALL);
@@ -68,12 +72,13 @@ public class BovadaConnector {
                 if (method.equalsIgnoreCase("Network.responseReceived")
                     && response.getString("url").contains("coupon")
                 ) {
-                    eventInitialzerService.syncEventsAsync(response.getString("url"));
+                    eventInitializerService.syncEventsAsync(response.getString("url"));
                 }
                 else if(method.equalsIgnoreCase("Network.webSocketFrameSent")){
 //                    System.out.println("Message Sent: " + payload);
                 }else if(method.equalsIgnoreCase("Network.webSocketFrameReceived")){
                     String payload = response.getString("payloadData");
+                    liveOddsUpdateService.updateEventBook(payload);
                     System.out.println("Message Received: " + payload);
 //                    this.template.convertAndSend("/app/all", payload);
                     this.template.convertAndSend("/topic/all", payload);

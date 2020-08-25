@@ -19,13 +19,13 @@ public class EventBook {
         book = new HashMap<>();
     }
 
-    private Map<Integer, Event> book;
+    private Map<Long, Event> book;
 
-    public Map<Integer, Event> getBook() {
+    public Map<Long, Event> getBook() {
         return book;
     }
 
-    public void setBook(Map<Integer, Event> book) {
+    public void setBook(Map<Long, Event> book) {
         this.book = book;
     }
 
