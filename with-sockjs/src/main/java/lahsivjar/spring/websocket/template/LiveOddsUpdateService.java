@@ -5,8 +5,6 @@ import lahsivjar.spring.websocket.template.util.LiveOddsUpdateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static lahsivjar.spring.websocket.template.util.LiveOddsUpdateUtil.updateEvent;
-
 @Component
 public class LiveOddsUpdateService {
 
@@ -21,7 +19,7 @@ public class LiveOddsUpdateService {
         Long eventId = LiveOddsUpdateUtil.getEventId(wireMessage);
         if (eventId != null && this.eventBook.getBook().containsKey(eventId)) {
             Event existingEvent = this.eventBook.getBook().get(eventId);
-            updateEvent(existingEvent, wireMessage);
+            LiveOddsUpdateUtil.updateEvent(existingEvent, wireMessage);
         }
 
     }
