@@ -34,7 +34,9 @@ public class Event {
         lastUpdated = new Date();
     }
 
-    // TODO: add lines here
-
+    public boolean hasAnotherBettingSession(String besidesMarketId) {
+        return markets.values().stream()
+                .anyMatch(market -> !market.getId().equals(besidesMarketId) && market.getBettingSession() != null);
+    }
 
 }

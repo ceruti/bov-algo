@@ -20,6 +20,9 @@ public class BettingFacilitatorService {
     }
 
     private void updateBettingSessionBasic(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price) {
+        if (event.hasAnotherBettingSession(market.getId())) {
+            return;
+        }
         BettingSession bettingSession = market.getBettingSession();
         if (bettingSession == null && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
             Bet bet = betPlacingService.placeBet(outcome, price, INIT_BET);

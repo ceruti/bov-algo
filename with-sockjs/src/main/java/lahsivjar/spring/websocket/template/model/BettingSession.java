@@ -1,12 +1,14 @@
 package lahsivjar.spring.websocket.template.model;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
+@NoArgsConstructor
 public class BettingSession {
 
     private Map<String, BettingSessionPosition> positions = new HashMap<>();

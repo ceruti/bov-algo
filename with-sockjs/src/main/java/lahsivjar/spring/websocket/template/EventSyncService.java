@@ -28,6 +28,9 @@ public class EventSyncService {
 
     @Scheduled(fixedDelay = 10000)
     public void sync() {
+        if (!eventBook.isEnableUpdates()) {
+            return;
+        }
         Collection<Event> values = eventBook.getBook().values();
         this.eventRepository.save(values);
     }
