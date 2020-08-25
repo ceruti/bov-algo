@@ -13,6 +13,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 
 import java.util.HashMap;
@@ -28,10 +29,15 @@ public class BovadaConnector {
 
     private ChatHistoryDao chatHistoryDao;
 
+    private EventInitialzerService eventInitialzerService;
+
+    private RestTemplate restTemplate = new RestTemplate();
+
     @Autowired
-    public BovadaConnector(SimpMessagingTemplate template, ChatHistoryDao chatHistoryDao) throws InterruptedException {
+    public BovadaConnector(SimpMessagingTemplate template, ChatHistoryDao chatHistoryDao, EventInitialzerService eventInitialzerService) throws InterruptedException {
         this.template = template;
         this.chatHistoryDao = chatHistoryDao;
+        this.eventInitialzerService = eventInitialzerService;
         System.setProperty("webdriver.chrome.driver", "/Users/marc.ceruti/drivers/chromedriver");
         LoggingPreferences loggingprefs = new LoggingPreferences();
         loggingprefs.enable(LogType.PERFORMANCE, Level.ALL);
@@ -54,20 +60,28 @@ public class BovadaConnector {
         LogEntries logEntries = driver.manage().logs().get(LogType.PERFORMANCE);
         logEntries.forEach(entry->{
             JSONObject messageJSON = new JSONObject(entry.getMessage());
-            String method = messageJSON.getJSONObject("message").getString("method");
+            JSONObject message = messageJSON.getJSONObject("message");
+            String method = message.getString("method");
             try {
-                String payload = messageJSON.getJSONObject("message").getJSONObject("params").getJSONObject("response").getString("payloadData");
-                if(method.equalsIgnoreCase("Network.webSocketFrameSent")){
-                    System.out.println("Message Sent: " + payload);
+                JSONObject params = message.getJSONObject("params");
+                JSONObject response = params.getJSONObject("response");
+                if (method.equalsIgnoreCase("Network.responseReceived")
+                    && response.getString("url").contains("coupon")
+                ) {
+                    eventInitialzerService.syncEventsAsync(response.getString("url"));
+                }
+                else if(method.equalsIgnoreCase("Network.webSocketFrameSent")){
+//                    System.out.println("Message Sent: " + payload);
                 }else if(method.equalsIgnoreCase("Network.webSocketFrameReceived")){
+                    String payload = response.getString("payloadData");
                     System.out.println("Message Received: " + payload);
 //                    this.template.convertAndSend("/app/all", payload);
                     this.template.convertAndSend("/topic/all", payload);
-                    Map<String, String> message = new HashMap<>();
-                    message.put("author", "bov-boy");
-                    message.put("authorId", "GZ0Ut7zC4mKHfeEmQx0ZnloZxIH8J4Lh");
-                    message.put("message", payload);
-                    message.put("timestamp", Long.toString(System.currentTimeMillis()));
+                    Map<String, String> _message = new HashMap<>();
+                    _message.put("author", "bov-boy");
+                    _message.put("authorId", "GZ0Ut7zC4mKHfeEmQx0ZnloZxIH8J4Lh");
+                    _message.put("message", payload);
+                    _message.put("timestamp", Long.toString(System.currentTimeMillis()));
 //                    chatHistoryDao.save(message); TODO: uncomment this?
 
                 }
