@@ -34,7 +34,7 @@ public class MessageController {
     }
 
     @RequestMapping("/events")
-    public Map<Long, Event> getEvents() {
+    public Map<String, Map<Long, Event>> getEvents() {
         return this.eventBook.getLiveEvents();
     }
 

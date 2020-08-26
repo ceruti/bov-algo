@@ -29,19 +29,49 @@ public class EventBook {
         return book;
     }
 
-    public Map<Long, Event> getLiveEvents() {
-        Map<Long, Event> liveEvents = new HashMap<>();
+    public Map<String, Map<Long, Event>> getLiveEvents() {
+        Map<String, Map<Long, Event>> liveEvents = new HashMap<>();
         this.book.values().parallelStream().forEach(event -> {
             Date lastUpdated = event.getLastUpdated();
             if (lastUpdated != null) {
                 DateTime lastUpdatedJoda = new DateTime(lastUpdated);
                 DateTime now = new DateTime();
                 if (lastUpdatedJoda.isAfter(now.minusMinutes(30))) {
-                    liveEvents.put(event.getId(), event);
+                    String sport = getEquivalentKey(event.getSport());
+                    if (!liveEvents.containsKey(sport)) {
+                        liveEvents.put(sport, new HashMap<>());
+                    }
+                    Map<Long, Event> mapForSport = liveEvents.get(sport);
+                    mapForSport.put(event.getId(), event);
                 }
             }
         });
         return liveEvents;
+    }
+
+    private String getEquivalentKey(String sport) {
+        switch(sport) {
+            case "TENN":
+                return "TENNIS";
+            case "HCKY":
+                return "HOCKEY";
+            case "SOCC":
+                return "SOCCER";
+            case "BASK":
+                return "BASKETBALL";
+            case "TABL":
+                return "TABLETENNIS";
+            case "BASE":
+                return "BASEBALL";
+            case "ESPT":
+                return "E-SPORTS";
+            case "DART":
+                return "DARTS";
+            case "RUGU":
+                return "RUGBY";
+            default:
+                return sport;
+        }
     }
 
     public void setBook(Map<Long, Event> book) {
