@@ -31,6 +31,7 @@ public class EventSyncService {
         if (!eventBook.isEnableUpdates()) {
             return;
         }
+        System.out.println("Syncing to database...");
         Collection<Event> values = eventBook.getBook().values();
         this.eventRepository.save(values);
     }

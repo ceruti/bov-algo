@@ -69,6 +69,7 @@ public class StrategyAnalysisIntegrationTests {
     }
 
     private void logProfit(Event event, Market market, Outcome outcome1, Outcome outcome2, List<Price> previousPrices1, List<Price> previousPrices2) {
+        market.setBettingSession(null);
         List<OutcomeAndPrice> outcomeAndPrices = new ArrayList<>();
         for (Price price : previousPrices1) {
             outcomeAndPrices.add(new OutcomeAndPrice(outcome1, price));

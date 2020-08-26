@@ -19,4 +19,12 @@ public class Price {
         created = new Date();
     }
 
+    public Price clone() {
+        Price result = new Price();
+        result.american = this.american;
+        result.id = this.id;
+        result.created = this.created;
+        return result;
+    }
+
 }

@@ -3,7 +3,6 @@ package lahsivjar.spring.websocket.template.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,16 +34,28 @@ public class BettingSessionPosition {
         return bets.stream().filter(bet -> bet.getStatus().equals(Bet.Status.PLACED)).mapToDouble(Bet::getWinAmount).sum();
     }
 
-    public double getNetWinAmount() {
-        return bets.stream().filter(bet -> bet.getStatus().equals(Bet.Status.PLACED)).mapToDouble(Bet::getNetWinAmount).sum();
+    public double getNetProfitInWinAmount() {
+        return bets.stream().filter(bet -> bet.getStatus().equals(Bet.Status.PLACED)).mapToDouble(Bet::getNetProfitInWinAmount).sum();
     }
 
-    public double getNetLoseAmount() {
-        return bets.stream().filter(bet -> bet.getStatus().equals(Bet.Status.PLACED)).mapToDouble(Bet::getNetLoseAmount).sum();
+    public double getNetProfitInLossAmount() {
+        return bets.stream().filter(bet -> bet.getStatus().equals(Bet.Status.PLACED)).mapToDouble(Bet::getNetProfitInLoseAmount).sum();
     }
 
 
     public void update(Bet additionalBet) {
         bets.add(additionalBet);
+    }
+
+    public BettingSessionPosition clone() {
+        BettingSessionPosition result = new BettingSessionPosition();
+        result.outcomeId = this.outcomeId;
+        result.opposingOutcomeId = this.opposingOutcomeId;
+        List<Bet> copyBets = new ArrayList<>();
+        for (Bet bet : bets) {
+            copyBets.add(bet.clone());
+        }
+        result.bets = copyBets;
+        return result;
     }
 }

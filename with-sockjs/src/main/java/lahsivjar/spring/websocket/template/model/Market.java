@@ -19,9 +19,7 @@ public class Market {
     private BettingSession bettingSession;
 
     public void initBettingSession(Bet initialBet, String outcomeId, String opposingOutcomeId) {
-        if (initialBet.isPlaced()) {
-            bettingSession = new BettingSession(initialBet, outcomeId, opposingOutcomeId);
-        }
+        bettingSession = new BettingSession(initialBet, outcomeId, opposingOutcomeId);
     }
 
     public void updateBettingSession(Bet additionalBet, String outcomeId) {

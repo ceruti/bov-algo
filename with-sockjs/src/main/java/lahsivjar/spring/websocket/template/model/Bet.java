@@ -1,8 +1,10 @@
 package lahsivjar.spring.websocket.template.model;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class Bet {
 
     private Price price;
@@ -32,16 +34,25 @@ public class Bet {
         return riskAmount * Math.abs(100.0 / price.getAmerican());
     }
 
-    public double getNetWinAmount() {
-        return riskAmount+winAmount;
+    public double getNetProfitInWinAmount() {
+        return winAmount;
     }
 
-    public double getNetLoseAmount() {
+    public double getNetProfitInLoseAmount() {
         return -riskAmount;
     }
 
     public boolean isPlaced() {
         return status.equals(Status.PLACED);
+    }
+
+    public Bet clone() {
+        Bet result = new Bet();
+        result.price = this.price.clone();
+        result.status = this.status;
+        result.riskAmount = this.riskAmount;
+        result.winAmount = this.winAmount;
+        return result;
     }
 
 }

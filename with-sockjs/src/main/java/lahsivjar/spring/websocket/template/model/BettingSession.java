@@ -2,7 +2,6 @@ package lahsivjar.spring.websocket.template.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +13,7 @@ public class BettingSession {
     private Map<String, BettingSessionPosition> positions = new HashMap<>();
     private String outcome1Id;
     private String outcome2Id;
+    private String winningOutcomeId;
 
     public BettingSession(Bet initialBet, String outcomeId, String opposingOutcomeId) {
         outcome1Id = outcomeId;
@@ -55,23 +55,58 @@ public class BettingSession {
         if (!validatePositions(positions)) {
             return 0;
         }
-        return Math.max(outcome1NetProfit(), outcome2NetProfit());
+        return Math.max(getNetProfitInOutcome1WinEvent(), getNetProfitInOutcome2WinEvent());
     }
+
+    public double getFinalNetProfit() {
+        if (outcome1Id.equals(winningOutcomeId)) {
+            return getNetProfitInOutcome1WinEvent();
+        }
+        if (outcome2Id.equals(winningOutcomeId)) {
+            return getNetProfitInOutcome2WinEvent();
+        }
+        return -1;
+    }
+
 
 
     public double getMinimumProfit() {
         if (!validatePositions(positions)) {
             return 0;
         }
-        return Math.min(outcome1NetProfit(), outcome2NetProfit());
+        return Math.min(getNetProfitInOutcome1WinEvent(), getNetProfitInOutcome2WinEvent());
     }
 
-    private double outcome1NetProfit() {
-        return positions.get(outcome1Id).getNetWinAmount() + positions.get(outcome2Id).getNetLoseAmount();
+    private double getNetProfitInOutcome1WinEvent() {
+        return positions.get(outcome1Id).getNetProfitInWinAmount() + positions.get(outcome2Id).getNetProfitInLossAmount();
     }
 
-    private double outcome2NetProfit() {
-        return positions.get(outcome2Id).getNetWinAmount() + positions.get(outcome1Id).getNetLoseAmount();
+    private double getNetProfitInOutcome2WinEvent() {
+        return positions.get(outcome2Id).getNetProfitInWinAmount() + positions.get(outcome1Id).getNetProfitInLossAmount();
+    }
+
+//    public boolean isMinimumNetProfitIncreasedByBet(Price price, Outcome outcome, Outcome opposingOutcome) {
+//        return false;
+//    }
+
+    public BettingSession clone() {
+        BettingSession result = new BettingSession();
+        result.outcome1Id = this.outcome1Id;
+        result.outcome2Id = this.outcome2Id;
+        result.winningOutcomeId = this.winningOutcomeId;
+        for (String outcomeId : this.positions.keySet()) {
+            BettingSessionPosition copy = this.positions.get(outcomeId).clone();
+            result.positions.put(outcomeId, copy);
+        }
+        return result;
+    }
+
+    public String getMoreProfitableOutcomeId() {
+        return getNetProfitInOutcome1WinEvent() >= getNetProfitInOutcome2WinEvent() ? outcome1Id : outcome2Id;
+    }
+
+    public String getLessProfitableOutcomeId() {
+        return getNetProfitInOutcome1WinEvent() <= getNetProfitInOutcome2WinEvent() ? outcome1Id : outcome2Id;
     }
 
 }
