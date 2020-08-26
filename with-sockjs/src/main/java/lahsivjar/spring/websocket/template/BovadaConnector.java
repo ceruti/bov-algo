@@ -87,8 +87,7 @@ public class BovadaConnector {
                     String payload = response.getString("payloadData");
                     liveOddsUpdateService.updateEventBook(payload);
 //                    System.out.println("Message Received: " + payload);
-//                    this.template.convertAndSend("/app/all", payload);
-                    this.template.convertAndSend("/topic/all", payload);
+//                    this.template.convertAndSend("/topic/all", payload);
                     Map<String, String> _message = new HashMap<>();
                     _message.put("author", "bov-boy");
                     _message.put("authorId", "GZ0Ut7zC4mKHfeEmQx0ZnloZxIH8J4Lh");

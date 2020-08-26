@@ -3,7 +3,11 @@ package lahsivjar.spring.websocket.template.util;
 import lahsivjar.spring.websocket.template.BetPlacingService;
 import lahsivjar.spring.websocket.template.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Component
 public class BettingFacilitatorService {
@@ -14,15 +18,21 @@ public class BettingFacilitatorService {
 
     private BetPlacingService betPlacingService;
 
+    private SimpMessagingTemplate template;
+
+    private ExecutorService executorService = Executors.newFixedThreadPool(10);
+
     @Autowired
-    public BettingFacilitatorService(BetPlacingService betPlacingService) {
+    public BettingFacilitatorService(BetPlacingService betPlacingService, SimpMessagingTemplate simpMessagingTemplate) {
         this.betPlacingService = betPlacingService;
+        this.template = simpMessagingTemplate;
     }
 
     private void updateBettingSessionBasic(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price) {
         if (event.hasAnotherBettingSession(market.getId())) {
             return;
         }
+        printBettingLineUpdate(event, outcome, price);
         BettingSession bettingSession = market.getBettingSession();
         if (bettingSession == null && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
             attemptInitBettingSession(event, market, outcome, opposingOutcome, price);
@@ -30,6 +40,24 @@ public class BettingFacilitatorService {
         else if (bettingSession != null && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
             attemptPlaceAdditionalBet(event, market, outcome, price, bettingSession);
         }
+    }
+
+    private void printBettingLineUpdate(Event event, Outcome outcome, Price price) {
+        System.out.println(String.format(
+                "~~~~~~~~~~~~~~~~~~~~~\n"+
+                "NEW LINE:\n"+
+                "\teventId: %d\n" +
+                "\teventDescription: %s\n" +
+                "\toutcome: %s\n"+
+                "\tmoneyLine: %s\n" +
+                "\ttime: %s\n"+
+                "~~~~~~~~~~~~~~~~~~~~~\n",
+                event.getId(),
+                event.getDescription(),
+                outcome.getDescription(),
+                printAmericanPrice(price),
+                price.getCreated().toString()
+        ));
     }
 
     private void attemptPlaceAdditionalBet(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession) {
@@ -83,27 +111,39 @@ public class BettingFacilitatorService {
         String lessProfitableOutcomeId = bettingSession.getLessProfitableOutcomeId();
         String moreProfitableOutcomeDescription = market.getOutcomes().get(moreProfitableOutcomeId).getDescription();
         String lessProfitableOutcomeDescription = market.getOutcomes().get(lessProfitableOutcomeId).getDescription();
-        System.out.println(String.format("############################################\n" +
-                "NEW BET:\n" +
-                "\teventId: %d\n" +
-                "\teventDescription: %s\n" +
-                "\triskAmount: %.2f\n" +
-                "\tmoneyLine: %s\n" +
-                "\toutcome: %s\n" +
-                "----------------\n"+
-                "TOTALS:\n" +
-                "\tminimumProfit (%s wins): %.2f\n"+
-                "\tmaximumProfit (%s wins): %.2f\n"+
-                "############################################",
+        String betPlaced = String.format("############################################\n" +
+                        "NEW BET:\n" +
+                        "\teventId: %d\n" +
+                        "\teventDescription: %s\n" +
+                        "\triskAmount: %.2f\n" +
+                        "\tmoneyLine: %s\n" +
+                        "\toutcome: %s\n" +
+                        "----------------\n" +
+                        "TOTALS:\n" +
+                        "\tminimumProfit (%s wins): %.2f\n" +
+                        "\tmaximumProfit (%s wins): %.2f\n" +
+                        "############################################",
                 event.getId(),
                 event.getDescription(),
                 bet.getRiskAmount(),
-                price.getAmerican() > 0 ? "+"+price.getAmerican() : price.getAmerican(),
+                printAmericanPrice(price),
                 outcome.getDescription(),
                 lessProfitableOutcomeDescription,
                 bettingSession.getMinimumProfit(),
                 moreProfitableOutcomeDescription,
-                bettingSession.getMaximumProfit()));
+                bettingSession.getMaximumProfit());
+        System.out.println(betPlaced);
+        this.template.convertAndSend("/topic/all", betPlaced);
+    }
+
+    private String printAmericanPrice(Price price) {
+        return price.getAmerican() > 0 ? "+"+price.getAmerican() : Integer.toString(price.getAmerican());
+    }
+
+    public void updateBettingSessionAsync(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price, Strategy stategy) {
+        executorService.submit(() -> {
+           updateBettingSession(event, market, outcome, opposingOutcome, price, stategy);
+        });
     }
 
     public void updateBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price, Strategy stategy) {

@@ -38,12 +38,9 @@ public class StrategyAnalysisIntegrationTests {
             Map<String, Market> markets = event.getMarkets();
             if (markets != null) {
                 for (Market market : markets.values()) {
-//                    if (market.getDescription().equalsIgnoreCase("Moneyline")
-//                        || market.getDescription().equalsIgnoreCase("Fight Winner")) {
+                    if (market.getDescription().equalsIgnoreCase("Moneyline")
+                        || market.getDescription().equalsIgnoreCase("Fight Winner")) {
                         if (market.getOutcomes().size() == 2) {
-//                            if (!market.getDescription().equalsIgnoreCase("Moneyline")) {
-//                                System.out.println(market.getDescription());
-//                            }
                             List<Outcome> outcomeValues = new ArrayList<>(market.getOutcomes().values());
                             Outcome outcome1 = outcomeValues.get(0);
                             Outcome outcome2 = outcomeValues.get(1);
@@ -55,13 +52,12 @@ public class StrategyAnalysisIntegrationTests {
                                     && previousPrices1.size() > 10
                                     && previousPrices2.size() > 10) {
                                     logProfit(event, market, outcome1, outcome2, previousPrices1, previousPrices2);
-//                                    System.out.println(String.format("Sport: %s", event.getSport()));
                                     moneyLines++;
                                 }
                             }
 
                         }
-//                    }
+                    }
                 }
             }
         }

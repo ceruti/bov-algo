@@ -1,14 +1,28 @@
 package lahsivjar.spring.websocket.template.util;
 
+import lahsivjar.spring.websocket.template.EventBook;
+import lahsivjar.spring.websocket.template.LiveOddsUpdateService;
 import lahsivjar.spring.websocket.template.model.*;
 import lombok.Data;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-public class LiveOddsUpdateUtil {
+@Component
+public class LiveFeedUpdateService {
+
+    private BettingFacilitatorService bettingFacilitatorService;
+    private EventBook eventBook;
+
+    @Autowired
+    public LiveFeedUpdateService(BettingFacilitatorService bettingFacilitatorService, EventBook eventBook) {
+        this.bettingFacilitatorService = bettingFacilitatorService;
+        this.eventBook = eventBook;
+    }
 
     public static Collection<Long> getEventIds(String rawMessage) {
         if (rawMessage.contains("}|{")) {
@@ -36,7 +50,7 @@ public class LiveOddsUpdateUtil {
         return true;
     }
 
-    public static boolean updateEvent(Event toUpdate, String rawMessage) {
+    public boolean updateEvent(Event toUpdate, String rawMessage) {
         boolean updated = false;
         if (rawMessage.contains("}|{")) {
             WireMessage wireMessage = isType1(rawMessage) ? new WireMessageType1(rawMessage) : new WireMessageType2(rawMessage);
@@ -95,7 +109,7 @@ public class LiveOddsUpdateUtil {
         }
     }
 
-    private static boolean updateOutcome(WireMessage wireMessage, Market market, long eventId) {
+    private boolean updateOutcome(WireMessage wireMessage, Market market, long eventId) {
         Outcome outcomeToUpdate = market.getOutcomes().get(wireMessage.getOutcomeId());
         wireMessage.setDescription(outcomeToUpdate.getDescription());
         Price previousPrice = outcomeToUpdate.getPrice();
@@ -109,9 +123,29 @@ public class LiveOddsUpdateUtil {
             outcomeToUpdate.setPreviousPrices(previousPrices);
             outcomeToUpdate.setPrice(newPrice);
             System.out.println(String.format("[event %d] Updated odds: %s %d", eventId, wireMessage.getDescription(), wireMessage.getAmericanOdds()));
+            faciliatePotentialBet(eventId, newPrice, outcomeToUpdate, market);
             return true;
         }
         return false;
+    }
+
+    private void faciliatePotentialBet(long eventId, Price price, Outcome outcome, Market market) {
+        Event event = eventBook.getBook().get(eventId);
+        if (market.getDescription().equalsIgnoreCase("MoneyLine") && market.getOutcomes().size() == 2) {
+            Outcome opposingOutcome = market.getOutcomes().values()
+                    .stream()
+                    .filter(otherOutcome -> !otherOutcome.getId().equals(outcome.getId()))
+                    .findFirst()
+                    .get();
+            bettingFacilitatorService.updateBettingSessionAsync(
+                    event,
+                    market,
+                    outcome,
+                    opposingOutcome,
+                    price,
+                    Strategy.BASIC
+            );
+        }
     }
 
     private interface WireMessage {
