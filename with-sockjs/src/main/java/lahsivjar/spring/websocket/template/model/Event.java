@@ -30,6 +30,16 @@ public class Event {
 
     }
 
+    private boolean bettingEnabled = false;
+
+    public void enableBetting() {
+        this.bettingEnabled = true;
+    }
+
+    public void disableBetting() {
+        this.bettingEnabled = false;
+    }
+
     public void markUpdated() {
         lastUpdated = new Date();
     }

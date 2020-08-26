@@ -149,6 +149,9 @@ public class BettingFacilitatorService {
     }
 
     public void updateBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price, Strategy stategy) {
+        if (!event.isBettingEnabled()) {
+            return;
+        }
         switch (stategy) {
             case BASIC:
                 updateBettingSessionBasic(event, market, outcome, opposingOutcome, price);

@@ -17,4 +17,14 @@ public class Outcome {
 
     private String opposingOutcomeId;
 
+    private boolean bettingEnabled = true;
+
+    public void enableBetting() {
+        this.bettingEnabled = true;
+    }
+
+    public void disableBetting() {
+        this.bettingEnabled = false;
+    }
+
 }

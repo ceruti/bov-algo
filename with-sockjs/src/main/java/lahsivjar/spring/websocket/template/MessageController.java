@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -36,6 +38,32 @@ public class MessageController {
     @RequestMapping("/events")
     public Map<String, Map<Long, Event>> getEvents() {
         return this.eventBook.getLiveEvents();
+    }
+
+    // NOTE: these requests are served over HTTPS instead of WebSocket because WebSockets are not as reliable and these commands are critical, even if latency is higher
+
+    @RequestMapping(value = "/events/{eventId}/enable", method = RequestMethod.PUT)
+    public void enableEventForBetting(@PathVariable(value="eventId") String eventId) {
+        this.eventBook.enableEventForBetting(eventId);
+    }
+
+    @RequestMapping(value = "/events/{eventId}/disable", method = RequestMethod.PUT)
+    public void disableEventForBetting(@PathVariable(value="eventId") String eventId) {
+        this.eventBook.disableEventForBetting(eventId);
+    }
+
+    @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/enable", method = RequestMethod.PUT)
+    public void enableOutcomeForBetting(@PathVariable(value="eventId") String eventId,
+                                        @PathVariable(value="marketId") String marketId,
+                                        @PathVariable(value="outcomeId") String outcomeId) {
+        this.eventBook.enableOutcomeForBetting(eventId, marketId, outcomeId);
+    }
+
+    @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/enable", method = RequestMethod.PUT)
+    public void disableOutcomeForBetting(@PathVariable(value="eventId") String eventId,
+                                         @PathVariable(value="marketId") String marketId,
+                                         @PathVariable(value="outcomeId") String outcomeId) {
+        this.eventBook.disableOutcomeForBetting(eventId, marketId, outcomeId);
     }
 
 //    @RequestMapping("/history")
