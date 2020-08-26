@@ -33,7 +33,7 @@ public class EventBook {
         Map<String, Map<Long, Event>> liveEvents = new HashMap<>();
         this.book.values().parallelStream().forEach(event -> {
             Date lastUpdated = event.getLastUpdated();
-            if (lastUpdated != null) {
+            if (lastUpdated != null && (event.getGameStatus() == null || !event.getGameStatus().equalsIgnoreCase("GAME_END"))) {
                 DateTime lastUpdatedJoda = new DateTime(lastUpdated);
                 DateTime now = new DateTime();
                 if (lastUpdatedJoda.isAfter(now.minusMinutes(30))) {
