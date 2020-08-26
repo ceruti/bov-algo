@@ -14,6 +14,7 @@ public class EventParseUtil {
     public static Event parseEvent(JSONObject eventJSONObject) {
         Event event = new Event();
         event.setCreatedAt(new Date());
+        event.setLastUpdated(new Date());
         setBaseFields(eventJSONObject, event);
         setCompetitors(eventJSONObject, event);
         setMarkets(eventJSONObject, event);
