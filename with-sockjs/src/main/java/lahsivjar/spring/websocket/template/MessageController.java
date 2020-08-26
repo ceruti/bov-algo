@@ -32,6 +32,7 @@ public class MessageController {
     public Map<String, String> post(@Payload Map<String, String> message) {
 //        message.put("timestamp", Long.toString(System.currentTimeMillis()));
 //        chatHistoryDao.save(message);
+        // tODO: something with messages from the front end??
         return message;
     }
 
@@ -59,7 +60,7 @@ public class MessageController {
         this.eventBook.enableOutcomeForBetting(eventId, marketId, outcomeId);
     }
 
-    @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/enable", method = RequestMethod.PUT)
+    @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/disable", method = RequestMethod.PUT)
     public void disableOutcomeForBetting(@PathVariable(value="eventId") String eventId,
                                          @PathVariable(value="marketId") String marketId,
                                          @PathVariable(value="outcomeId") String outcomeId) {
