@@ -3,6 +3,8 @@ package lahsivjar.spring.websocket.template.model;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 public class Bet {
@@ -11,9 +13,11 @@ public class Bet {
     private Status status;
     private double riskAmount;
     private double winAmount;
+    private Date placedAt;
 
     public void markPlaced() {
         this.status = Status.PLACED;
+        this.placedAt = new Date();
     }
 
     enum Status {

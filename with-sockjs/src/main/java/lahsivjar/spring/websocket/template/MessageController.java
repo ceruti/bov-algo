@@ -1,8 +1,8 @@
 package lahsivjar.spring.websocket.template;
 
-import java.util.List;
 import java.util.Map;
 
+import lahsivjar.spring.websocket.template.model.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -13,8 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class MessageController {
 
+    private EventBook eventBook;
+
     @Autowired
-    private ChatHistoryDao chatHistoryDao;
+    public MessageController(EventBook eventBook) {
+        this.eventBook = eventBook;
+    }
 
     /*
      * This MessageMapping annotated method will be handled by
@@ -24,13 +28,18 @@ public class MessageController {
     @MessageMapping("/all")
     @SendTo("/topic/all")
     public Map<String, String> post(@Payload Map<String, String> message) {
-        message.put("timestamp", Long.toString(System.currentTimeMillis()));
-        chatHistoryDao.save(message);
+//        message.put("timestamp", Long.toString(System.currentTimeMillis()));
+//        chatHistoryDao.save(message);
         return message;
     }
 
-    @RequestMapping("/history")
-    public List<Map<String, String>> getChatHistory() {
-        return chatHistoryDao.get();
+    @RequestMapping("/events")
+    public Map<Long, Event> getEvents() {
+        return this.eventBook.getLiveEvents();
     }
+
+//    @RequestMapping("/history")
+//    public List<Map<String, String>> getChatHistory() {
+//        return chatHistoryDao.get();
+//    }
 }

@@ -1,10 +1,12 @@
 package lahsivjar.spring.websocket.template;
 
 import lahsivjar.spring.websocket.template.model.Event;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +27,21 @@ public class EventBook {
 
     public Map<Long, Event> getBook() {
         return book;
+    }
+
+    public Map<Long, Event> getLiveEvents() {
+        Map<Long, Event> liveEvents = new HashMap<>();
+        this.book.values().parallelStream().forEach(event -> {
+            Date lastUpdated = event.getLastUpdated();
+            if (lastUpdated != null) {
+                DateTime lastUpdatedJoda = new DateTime(lastUpdated);
+                DateTime now = new DateTime();
+                if (lastUpdatedJoda.isAfter(now.minusMinutes(30))) {
+                    liveEvents.put(event.getId(), event);
+                }
+            }
+        });
+        return liveEvents;
     }
 
     public void setBook(Map<Long, Event> book) {

@@ -27,6 +27,7 @@ public class LiveOddsUpdateService {
                 Event existingEvent = this.eventBook.getBook().get(eventId);
                 if (liveFeedUpdateService.updateEvent(existingEvent, wireMessage)) {
                     existingEvent.markUpdated();
+                    // TODO: push socket update for UI (including game status and clock)
                 }
             }
         }
