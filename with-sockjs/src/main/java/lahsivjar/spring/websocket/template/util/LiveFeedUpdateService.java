@@ -122,7 +122,12 @@ public class LiveFeedUpdateService {
             previousPrices.add(previousPrice);
             outcomeToUpdate.setPreviousPrices(previousPrices);
             outcomeToUpdate.setPrice(newPrice);
-            System.out.println(String.format("[event %d] Updated odds: %s %d", eventId, wireMessage.getDescription(), wireMessage.getAmericanOdds()));
+            System.out.println(String.format("[event %d] Updated odds: %s/%s -> %s %d",
+                    eventId,
+                    eventBook.getBook().get(eventId).getDescription(),
+                    market.getDescription(),
+                    wireMessage.getDescription(),
+                    wireMessage.getAmericanOdds()));
             faciliatePotentialBet(eventId, newPrice, outcomeToUpdate, market);
             return true;
         }

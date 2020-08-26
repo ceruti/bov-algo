@@ -32,8 +32,10 @@ public class BettingFacilitatorService {
         if (event.hasAnotherBettingSession(market.getId())) {
             return;
         }
-        printBettingLineUpdate(event, outcome, price);
         BettingSession bettingSession = market.getBettingSession();
+        if (bettingSession != null) {
+            printBettingLineUpdate(event, outcome, price);
+        }
         if (bettingSession == null && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
             attemptInitBettingSession(event, market, outcome, opposingOutcome, price);
         }
@@ -45,7 +47,7 @@ public class BettingFacilitatorService {
     private void printBettingLineUpdate(Event event, Outcome outcome, Price price) {
         System.out.println(String.format(
                 "~~~~~~~~~~~~~~~~~~~~~\n"+
-                "NEW LINE:\n"+
+                "NEW LINE FOR ACTIVE BETTING SESSION:\n"+
                 "\teventId: %d\n" +
                 "\teventDescription: %s\n" +
                 "\toutcome: %s\n"+
