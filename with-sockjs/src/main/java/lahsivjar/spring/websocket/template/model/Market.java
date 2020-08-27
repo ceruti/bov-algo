@@ -1,5 +1,6 @@
 package lahsivjar.spring.websocket.template.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lahsivjar.spring.websocket.template.util.BettingFacilitatorService;
 import lombok.Data;
@@ -65,6 +66,26 @@ public class Market {
             return bettingSession.getMaximumProfit();
         }
         return 0.0;
+    }
+
+    @JsonProperty("moreProfitableOutcomeDescription")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String getMoreProfitableOutcomeDescription() {
+        if (bettingSession != null) {
+            String moreProfitableOutcomeId = bettingSession.getMoreProfitableOutcomeId();
+            return outcomes.get(moreProfitableOutcomeId).getDescription();
+        }
+        return null;
+    }
+
+    @JsonProperty("lessProfitableOutcomeDescription")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String getLessProfitableOutcomeDescription() {
+        if (bettingSession != null) {
+            String lessProfitableOutcomeId = bettingSession.getLessProfitableOutcomeId();
+            return outcomes.get(lessProfitableOutcomeId).getDescription();
+        }
+        return null;
     }
 
 }
