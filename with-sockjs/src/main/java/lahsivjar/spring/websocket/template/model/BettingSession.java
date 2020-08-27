@@ -59,14 +59,17 @@ public class BettingSession {
         return Math.max(getNetProfitInOutcome1WinEvent(), getNetProfitInOutcome2WinEvent());
     }
 
-    public double getFinalNetProfit() {
+    public Double getFinalNetProfit() {
+        if (winningOutcomeId == null) {
+            return null;
+        }
         if (outcome1Id.equals(winningOutcomeId)) {
             return getNetProfitInOutcome1WinEvent();
         }
         if (outcome2Id.equals(winningOutcomeId)) {
             return getNetProfitInOutcome2WinEvent();
         }
-        return 0;
+        return null;
     }
 
     public double getMinimumProfit() {

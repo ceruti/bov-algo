@@ -89,11 +89,40 @@ public class LiveFeedUpdateService {
             toUpdate.setHomeScore(latestScore.getString("home"));
         }
         if (eventUpdate.has("gameStatus")) {
-            toUpdate.setGameStatus(eventUpdate.getString("gameStatus"));
+            String gameStatus = eventUpdate.getString("gameStatus");
+            toUpdate.setGameStatus(gameStatus);
+            if (gameStatus.equalsIgnoreCase("GAME_END")) {
+                updateWinningOutcome(toUpdate);
+            }
         }
         updateClock(toUpdate, eventUpdate);
         System.out.println(String.format("[event %d] Updated event: %s", toUpdate.getId(), toUpdate.getDescription()));
         return true;
+    }
+
+    private static void updateWinningOutcome(Event toUpdate) {
+        try {
+            Optional<Market> moneyline = toUpdate.getMarkets().values().stream()
+                    .filter(market -> market.getDescription().equalsIgnoreCase("Moneyline"))
+                    .findFirst();
+            if (!moneyline.isPresent()) {
+                return;
+            }
+            Market moneylineMarket = moneyline.get();
+            boolean homeWins = Integer.parseInt(toUpdate.getHomeScore()) > Integer.parseInt(toUpdate.getVisitorScore());
+            Competitor winningCompetitor = toUpdate.getCompetitors().values().stream()
+                    .filter(competitor -> homeWins == competitor.isHome())
+                    .findFirst().get();
+            Outcome winningOutcome = moneylineMarket.getOutcomes().values().stream()
+                    .filter(outcome -> outcome.getCompetitorId().equals(winningCompetitor.getId()))
+                    .findFirst().get();
+            if (moneylineMarket.getBettingSession() != null) {
+                moneylineMarket.getBettingSession().setWinningOutcomeId(winningOutcome.getId());
+            }
+        } catch (Exception e) {
+            System.err.println("Unable to identify winner");
+            e.printStackTrace();
+        }
     }
 
     private static void updateClock(Event toUpdate, JSONObject eventUpdate) {

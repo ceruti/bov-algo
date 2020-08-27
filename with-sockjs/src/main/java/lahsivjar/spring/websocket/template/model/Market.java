@@ -28,17 +28,6 @@ public class Market {
         bettingSession.update(additionalBet, outcomeId);
     }
 
-    // TODO: these are probably more suitably properties of the betting session... but we don't have references to the outcome objects
-
-    @JsonProperty("expectedProfit")
-    public double getExpectedProfit() {
-        if (bettingSession != null) {
-            return bettingSession.getNetProfitInOutcome1WinEvent() * getOutcomeProbability(bettingSession.getOutcome1Id())
-                    + bettingSession.getNetProfitInOutcome2WinEvent() * getOutcomeProbability(bettingSession.getOutcome2Id());
-        }
-         return 0.0;
-    }
-
     private double getOutcomeProbability(String outcome1Id) {
         return getProbability(outcomes.get(outcome1Id));
     }
@@ -50,6 +39,17 @@ public class Market {
         } else {
             return (1.0 * Math.abs(americanOutcomeOdds)) / (Math.abs(americanOutcomeOdds) + 100.0);
         }
+    }
+
+    // TODO: these are probably more suitably properties of the betting session... but we don't have references to the outcome objects
+
+    @JsonProperty("expectedProfit")
+    public double getExpectedProfit() {
+        if (bettingSession != null) {
+            return bettingSession.getNetProfitInOutcome1WinEvent() * getOutcomeProbability(bettingSession.getOutcome1Id())
+                    + bettingSession.getNetProfitInOutcome2WinEvent() * getOutcomeProbability(bettingSession.getOutcome2Id());
+        }
+        return 0.0;
     }
 
     @JsonProperty("minimumProfit")
@@ -66,6 +66,12 @@ public class Market {
             return bettingSession.getMaximumProfit();
         }
         return 0.0;
+    }
+
+    @JsonProperty("finalNetProfit")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public Double getFinalNetProfit() {
+        return bettingSession.getFinalNetProfit();
     }
 
     @JsonProperty("moreProfitableOutcomeDescription")
