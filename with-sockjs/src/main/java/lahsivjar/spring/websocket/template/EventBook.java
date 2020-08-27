@@ -44,10 +44,11 @@ public class EventBook {
                 DateTime now = new DateTime();
                 if (lastUpdatedJoda.isAfter(now.minusMinutes(30))) {
                     String sport = getEquivalentKey(event.getSport());
-                    if (!liveEvents.containsKey(sport)) {
-                        liveEvents.put(sport, new HashMap<>());
-                    }
                     Map<Long, Event> mapForSport = liveEvents.get(sport);
+                    if (mapForSport == null) {
+                        mapForSport = new HashMap<>();
+                        liveEvents.put(sport, mapForSport);
+                    }
                     mapForSport.put(event.getId(), event);
                 }
             }

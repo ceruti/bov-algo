@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.*;
@@ -29,6 +30,15 @@ public class StrategyAnalysisIntegrationTests {
 
     @Autowired
     BettingFacilitatorService bettingFacilitatorService;
+
+    @Autowired
+    MongoTemplate mongoTemplate;
+
+    @Test
+    public void renameCollection() {
+        eventBook.setEnableUpdates(false);
+        mongoTemplate.getDb().getCollection("event").rename("eventDumpAug27");
+    }
 
     @Test
     public void testBasicStrategy() {
