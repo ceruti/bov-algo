@@ -1,8 +1,12 @@
 package lahsivjar.spring.websocket.template;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lahsivjar.spring.websocket.template.model.Event;
 import org.joda.time.DateTime;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
@@ -14,12 +18,14 @@ import java.util.Map;
 public class EventBook {
 
     private NullAwareBeanUtilsBean nullAwareBeanUtilsBean;
+    private SimpMessagingTemplate simpMessagingTemplate;
 
     private boolean enableUpdates = true;
 
     @Autowired
-    public EventBook(NullAwareBeanUtilsBean nullAwareBeanUtilsBean) {
+    public EventBook(NullAwareBeanUtilsBean nullAwareBeanUtilsBean, SimpMessagingTemplate simpMessagingTemplate) {
         this.nullAwareBeanUtilsBean = nullAwareBeanUtilsBean;
+        this.simpMessagingTemplate = simpMessagingTemplate;
         book = new HashMap<>();
     }
 
@@ -73,6 +79,8 @@ public class EventBook {
                 return "CRICKET";
             case "FOOT":
                 return "FOOTBALL";
+            case "VOLL":
+                return "VOLLEYBALL";
             default:
                 return sport;
         }
@@ -85,6 +93,8 @@ public class EventBook {
     public void addEvent(Event event) {
         System.out.println("New event found: " + event.getDescription());
         book.put(event.getId(), event);
+        event.setSport(getEquivalentKey(event.getSport()));
+        simpMessagingTemplate.convertAndSend("/topic/all", event);
     }
 
     public void updateEvent(Event event) throws InvocationTargetException, IllegalAccessException {
