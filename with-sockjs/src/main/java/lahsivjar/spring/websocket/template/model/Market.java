@@ -71,7 +71,9 @@ public class Market {
     @JsonProperty("finalNetProfit")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public Double getFinalNetProfit() {
-        return bettingSession.getFinalNetProfit();
+        if (bettingSession != null)
+            return bettingSession.getFinalNetProfit();
+        return null;
     }
 
     @JsonProperty("moreProfitableOutcomeDescription")

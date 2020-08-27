@@ -79,11 +79,11 @@ public class BettingSession {
         return Math.min(getNetProfitInOutcome1WinEvent(), getNetProfitInOutcome2WinEvent());
     }
 
-    double getNetProfitInOutcome1WinEvent() {
+    Double getNetProfitInOutcome1WinEvent() {
         return positions.get(outcome1Id).getNetProfitInWinAmount() + positions.get(outcome2Id).getNetProfitInLossAmount();
     }
 
-    double getNetProfitInOutcome2WinEvent() {
+    Double getNetProfitInOutcome2WinEvent() {
         return positions.get(outcome2Id).getNetProfitInWinAmount() + positions.get(outcome1Id).getNetProfitInLossAmount();
     }
 
