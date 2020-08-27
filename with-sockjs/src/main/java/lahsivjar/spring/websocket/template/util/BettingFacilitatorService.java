@@ -135,7 +135,7 @@ public class BettingFacilitatorService {
                 moreProfitableOutcomeDescription,
                 bettingSession.getMaximumProfit());
         System.out.println(betPlaced);
-        this.template.convertAndSend("/topic/all", betPlaced);
+//        this.template.convertAndSend("/topic/all", betPlaced);
     }
 
     private String printAmericanPrice(Price price) {

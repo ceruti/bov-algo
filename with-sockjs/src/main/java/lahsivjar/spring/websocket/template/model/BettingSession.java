@@ -1,5 +1,6 @@
 package lahsivjar.spring.websocket.template.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -65,10 +66,8 @@ public class BettingSession {
         if (outcome2Id.equals(winningOutcomeId)) {
             return getNetProfitInOutcome2WinEvent();
         }
-        return -1;
+        return 0;
     }
-
-
 
     public double getMinimumProfit() {
         if (!validatePositions(positions)) {
@@ -77,17 +76,13 @@ public class BettingSession {
         return Math.min(getNetProfitInOutcome1WinEvent(), getNetProfitInOutcome2WinEvent());
     }
 
-    private double getNetProfitInOutcome1WinEvent() {
+    double getNetProfitInOutcome1WinEvent() {
         return positions.get(outcome1Id).getNetProfitInWinAmount() + positions.get(outcome2Id).getNetProfitInLossAmount();
     }
 
-    private double getNetProfitInOutcome2WinEvent() {
+    double getNetProfitInOutcome2WinEvent() {
         return positions.get(outcome2Id).getNetProfitInWinAmount() + positions.get(outcome1Id).getNetProfitInLossAmount();
     }
-
-//    public boolean isMinimumNetProfitIncreasedByBet(Price price, Outcome outcome, Outcome opposingOutcome) {
-//        return false;
-//    }
 
     public BettingSession clone() {
         BettingSession result = new BettingSession();

@@ -1,3 +1,6 @@
+import lahsivjar.spring.websocket.template.model.Market;
+import lahsivjar.spring.websocket.template.model.Outcome;
+import lahsivjar.spring.websocket.template.model.Price;
 import lahsivjar.spring.websocket.template.util.EventParseUtil;
 import lahsivjar.spring.websocket.template.model.Event;
 import org.json.JSONException;
@@ -207,6 +210,24 @@ public class EventParseUtilTest {
         JSONObject eventJSON = new JSONObject(eventJson);
         Event event = EventParseUtil.parseEvent(eventJSON);
         System.out.println("done");
+    }
+
+    @Test
+    public void test2() {
+        Outcome outcomePlus200 = new Outcome();
+        Price pricePlus200 = new Price();
+        pricePlus200.setAmerican(200);
+        outcomePlus200.setPrice(pricePlus200);
+        System.out.println(Market.getProbability(outcomePlus200));
+    }
+
+    @Test
+    public void test3() {
+        Outcome outcomeMinus200 = new Outcome();
+        Price priceMinus200 = new Price();
+        priceMinus200.setAmerican(-200);
+        outcomeMinus200.setPrice(priceMinus200);
+        System.out.println(Market.getProbability(outcomeMinus200));
     }
 
 }
