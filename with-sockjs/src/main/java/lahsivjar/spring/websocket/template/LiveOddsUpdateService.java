@@ -3,6 +3,7 @@ package lahsivjar.spring.websocket.template;
 import lahsivjar.spring.websocket.template.model.Event;
 import lahsivjar.spring.websocket.template.util.LiveFeedUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -13,23 +14,37 @@ public class LiveOddsUpdateService {
 
     private EventBook eventBook;
     private LiveFeedUpdateService liveFeedUpdateService;
+    private SimpMessagingTemplate simpMessagingTemplate;
 
     @Autowired
-    public LiveOddsUpdateService(EventBook eventBook, LiveFeedUpdateService liveFeedUpdateService) {
+    public LiveOddsUpdateService(EventBook eventBook,
+                                 LiveFeedUpdateService liveFeedUpdateService,
+                                 SimpMessagingTemplate simpMessagingTemplate) {
         this.eventBook = eventBook;
         this.liveFeedUpdateService = liveFeedUpdateService;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
     public void updateEventBook(String wireMessage) {
-        Collection<Long> eventIds = LiveFeedUpdateService.getEventIds(wireMessage);
-        for (Long eventId : eventIds) {
-            if (eventId != null && this.eventBook.getBook().containsKey(eventId)) {
-                Event existingEvent = this.eventBook.getBook().get(eventId);
-                if (liveFeedUpdateService.updateEvent(existingEvent, wireMessage)) {
-                    existingEvent.markUpdated();
-                    // TODO: push socket update for UI (including game status and clock)
+        if (wireMessage.equalsIgnoreCase("{\"id\":0}")) {
+            return;
+        }
+        try {
+            Collection<Long> eventIds = LiveFeedUpdateService.getEventIds(wireMessage);
+            if (eventIds == null) return;
+            for (Long eventId : eventIds) {
+                if (eventId != null && this.eventBook.getBook().containsKey(eventId)) {
+                    Event existingEvent = this.eventBook.getBook().get(eventId);
+                    if (liveFeedUpdateService.updateEvent(existingEvent, wireMessage)) {
+                        existingEvent.markUpdated();
+                        simpMessagingTemplate.convertAndSend("/topic/all", existingEvent);
+                    }
                 }
             }
+        } catch (Exception e) {
+            System.err.println("Unable to update event book!");
+            e.printStackTrace();
+            System.err.println("Full wire message: "+wireMessage);
         }
     }
 

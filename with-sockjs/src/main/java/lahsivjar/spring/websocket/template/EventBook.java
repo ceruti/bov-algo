@@ -69,6 +69,10 @@ public class EventBook {
                 return "DARTS";
             case "RUGU":
                 return "RUGBY";
+            case "CRIC":
+                return "CRICKET";
+            case "FOOT":
+                return "FOOTBALL";
             default:
                 return sport;
         }
