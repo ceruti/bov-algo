@@ -1,7 +1,9 @@
 package lahsivjar.spring.websocket.template;
 
+import java.util.List;
 import java.util.Map;
 
+import lahsivjar.spring.websocket.template.model.BettingExecutionMetaResults;
 import lahsivjar.spring.websocket.template.model.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -16,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class MessageController {
 
     private EventBook eventBook;
+    private SimulationService simulationService;
 
     @Autowired
-    public MessageController(EventBook eventBook) {
+    public MessageController(EventBook eventBook, SimulationService simulationService) {
+        this.simulationService = simulationService;
         this.eventBook = eventBook;
     }
 
@@ -67,8 +71,14 @@ public class MessageController {
         this.eventBook.disableOutcomeForBetting(eventId, marketId, outcomeId);
     }
 
-//    @RequestMapping("/history")
-//    public List<Map<String, String>> getChatHistory() {
-//        return chatHistoryDao.get();
-//    }
+    @RequestMapping(value = "/simulations", method = RequestMethod.GET)
+    public List<String> listSimulations() {
+        return this.simulationService.getSimulationids();
+    }
+
+    @RequestMapping(value = "/simulations/{simulationId}", method = RequestMethod.GET)
+    public List<BettingExecutionMetaResults> getSimulationResult(@PathVariable(value="simulationId") String simulationId) {
+        return this.simulationService.getSimulation(simulationId);
+    }
+
 }

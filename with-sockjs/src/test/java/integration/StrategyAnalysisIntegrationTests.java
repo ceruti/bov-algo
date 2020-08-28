@@ -172,7 +172,7 @@ public class StrategyAnalysisIntegrationTests {
     private void performPostAnalysis(Market market, BettingExecutionMetaResults bettingExecutionMetaResults, List<OutcomeAndPriceTick> outcomeAndPriceTicks) {
         String winningOutcomeId = market.getBettingSession().getWinningOutcomeId();
         String losingOutcomeId = market.getBettingSession().getOutcome1Id().equals(winningOutcomeId) ?
-                market.getBettingSession().getOutcome1Id() : market.getBettingSession().getOutcome2Id();
+                market.getBettingSession().getOutcome2Id() : market.getBettingSession().getOutcome1Id();
         double[] fractionalWinnerOdds = toFractionalOdds(outcomeAndPriceTicks, winningOutcomeId);
         bettingExecutionMetaResults.winnerOddsStandardDeviation = new StandardDeviation().evaluate(fractionalWinnerOdds);
         double[] fractionalLoserOdds = toFractionalOdds(outcomeAndPriceTicks, losingOutcomeId);
