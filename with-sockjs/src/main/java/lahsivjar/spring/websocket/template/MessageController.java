@@ -9,10 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class MessageController {
@@ -77,8 +74,11 @@ public class MessageController {
     }
 
     @RequestMapping(value = "/simulations/{simulationId}", method = RequestMethod.GET)
-    public List<BettingExecutionMetaResults> getSimulationResult(@PathVariable(value="simulationId") String simulationId) {
-        return this.simulationService.getSimulation(simulationId);
+    public List<BettingExecutionMetaResults> getSimulationResult(
+            @PathVariable(value="simulationId") String simulationId,
+            @RequestParam(required = false, value = "sortBy") String sortBy,
+            @RequestParam(required = false, value = "sortDescending") Boolean sortDescending) {
+        return this.simulationService.getSimulation(simulationId, sortBy, sortDescending);
     }
 
 }
