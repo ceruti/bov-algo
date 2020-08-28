@@ -47,4 +47,16 @@ public class EventSyncService {
         this.eventRepository.save(values);
     }
 
+    // every 5 minutes, take stale events out of memory (they will certainly be in the DB by now)
+    // we don't want the heap size to grow out of control, and we want to keep the UI neat
+    @Scheduled(fixedDelay = 1000*60*5)
+    public void refresh() {
+        eventBook.getBook().keySet().removeIf(eventId -> {
+            DateTime lastUpdated = new DateTime(eventBook.getBook().get(eventId).getLastUpdated());
+            DateTime thirtyMinutesAgo = new DateTime().minusMinutes(30);
+            return lastUpdated.isBefore(thirtyMinutesAgo);
+        });
+    }
+
+
 }

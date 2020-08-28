@@ -5,6 +5,7 @@ import lahsivjar.spring.websocket.template.EventBook;
 import lahsivjar.spring.websocket.template.model.*;
 import lahsivjar.spring.websocket.template.util.BettingFacilitatorService;
 import lombok.AllArgsConstructor;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ public class StrategyAnalysisIntegrationTests {
     MongoTemplate mongoTemplate;
 
     @Test
+    @Ignore
     public void renameCollection() {
         eventBook.setEnableUpdates(false);
         mongoTemplate.getDb().getCollection("event").rename("eventDumpAug27");
@@ -40,6 +42,7 @@ public class StrategyAnalysisIntegrationTests {
 
 
     @Test
+    @Ignore
     public void testBasicStrategy() {
         eventBook.setEnableUpdates(false);
         int moneyLines = 0;

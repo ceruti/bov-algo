@@ -63,6 +63,12 @@ public class BovadaConnector {
         Thread.sleep(5000);
     }
 
+    // every ten minutes, refresh the page to find new events. sometimes odds feeds will stop too
+    @Scheduled(fixedDelay = 1000*60*10)
+    public void refresh() {
+        driver.navigate().refresh();
+    }
+
     @Scheduled(fixedDelay = 50)
     public void funnelMessages() {
         if (!eventBook.isEnableUpdates()) {
