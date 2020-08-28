@@ -97,13 +97,15 @@ public class StrategyAnalysisIntegrationTests {
         // - average favorite reversals by sport
 
         // EVENT COLUMNS
+        // - base obj columns: sport, eventId, winning outcome description
         // - num odds quotes
         // - profit
         // - num bets placed
         // - worst odds quote (for winner)
+        // - best odds quote (for loser)
         // - num favorite reversals and:
-        // - sport
-        // - average odd swings for all sports
+        // - standard deviation for winner odds --> need to convert to fractional first
+        // - standard deviation for loser odds --> need to convert to fractional first
         // - column for multiple betting strategies?? -> probably not
 
         // SOLUTION
