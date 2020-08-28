@@ -82,28 +82,37 @@ public class StrategyAnalysisIntegrationTests {
         }
         market.setBettingSession(null);
         event.setBettingEnabled(true);
-        executeBettingStrategy(event, market, outcome1, outcome2, outcomeAndPriceTicks, winningOutcomeId);
+        BettingExecutionMetaResults bettingExecutionMetaResults = executeBettingStrategy(event, market, outcome1, outcome2, outcomeAndPriceTicks, winningOutcomeId);
         if (market.getBettingSession() == null) {
             // bet was never made
             return;
         }
 
-//        Double finalNetProfit = market.getBettingSession().getFinalNetProfit();
-//        String finalProfit = String.format("Final profit: %.2f", finalNetProfit);
+        // TODO: do something with the executionResults (like write to DB)
 
-        // need to know:
+        // AGGREGATE COLUMNS:
         // - average profit
-        // - most profitable 20 events
-        // - least profitable 20 events
-        // - top 20 worst odds overcome... and the sport in them
-        // - top 20 odd swings and:
-        //      0.) how many odd swings
-        //      1.) end profit in top 20 sessions
-        //      2.) the sport in those sessions
-        // - average odd swings for all sports
+        // - average profit by sport
+        // - average favorite reversals
+        // - average favorite reversals by sport
 
-//        BettingSessionPostAnalysis postAnalysis = new BettingSessionPostAnalysis(market.getBettingSession(), market);
-//        System.out.println(finalProfit);
+        // EVENT COLUMNS
+        // - num odds quotes
+        // - profit
+        // - num bets placed
+        // - worst odds quote (for winner)
+        // - num favorite reversals and:
+        // - sport
+        // - average odd swings for all sports
+        // - column for multiple betting strategies?? -> probably not
+
+        // SOLUTION
+        // how to accomplish:
+        //      - write results of meta object to DB collection
+        //      - make react table sortable by column
+        //      - server-side queries on sort, or in-memory? server-side ideal, but try column first
+
+
     }
 
     private List<OutcomeAndPriceTick> getMergedPrices(Outcome outcome1, Outcome outcome2, List<Price> previousPrices1, List<Price> previousPrices2) {
