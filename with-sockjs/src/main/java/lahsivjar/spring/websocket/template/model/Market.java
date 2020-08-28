@@ -34,6 +34,10 @@ public class Market {
 
     public static double getProbability(Outcome outcome) {
         int americanOutcomeOdds = outcome.getPrice().getAmerican();
+        return toFractionalOdds(americanOutcomeOdds);
+    }
+
+    public static double toFractionalOdds(int americanOutcomeOdds) {
         if (americanOutcomeOdds > 0) {
             return (100.0) / (100.0 + americanOutcomeOdds);
         } else {
