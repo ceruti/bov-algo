@@ -2,6 +2,7 @@ package lahsivjar.spring.websocket.template;
 
 import com.mongodb.BasicDBObject;
 import lahsivjar.spring.websocket.template.model.BettingExecutionMetaResults;
+import lahsivjar.spring.websocket.template.model.SimulationPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -28,15 +29,18 @@ public class SimulationService {
     }
 
     // TODO: add record limit
-    public List<BettingExecutionMetaResults> getSimulation(String id, String sortBy, Boolean sortDescending) {
+    public SimulationPage getSimulation(String id, String sortBy, Boolean sortDescending, int page, int pageSize) {
         Query query = new Query();
-        query.limit(100); // TODO: use record limit
+        query.limit(pageSize); // TODO: use record limit
+        query.skip(page*pageSize);
         if (sortBy != null && !sortBy.isEmpty()) {
             boolean _sortDescending = sortDescending == null ? true : sortDescending;
             Sort.Direction sortDirection = _sortDescending ? Sort.Direction.DESC : Sort.Direction.ASC;
             query.with(new Sort(sortDirection, sortBy));
         }
         List<BettingExecutionMetaResults> bettingExecutionMetaResults = mongoTemplate.find(query, BettingExecutionMetaResults.class, id);
-        return bettingExecutionMetaResults;
+        long totalRecords = mongoTemplate.count(new Query(), id);
+        long pages = totalRecords / pageSize;
+        return new SimulationPage(bettingExecutionMetaResults, pages);
     }
 }

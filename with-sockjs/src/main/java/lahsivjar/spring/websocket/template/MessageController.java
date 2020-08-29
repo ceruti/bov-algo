@@ -5,6 +5,7 @@ import java.util.Map;
 
 import lahsivjar.spring.websocket.template.model.BettingExecutionMetaResults;
 import lahsivjar.spring.websocket.template.model.Event;
+import lahsivjar.spring.websocket.template.model.SimulationPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -74,11 +75,13 @@ public class MessageController {
     }
 
     @RequestMapping(value = "/simulations/{simulationId}", method = RequestMethod.GET)
-    public List<BettingExecutionMetaResults> getSimulationResult(
+    public SimulationPage getSimulationResult(
             @PathVariable(value="simulationId") String simulationId,
             @RequestParam(required = false, value = "sortBy") String sortBy,
-            @RequestParam(required = false, value = "sortDescending") Boolean sortDescending) {
-        return this.simulationService.getSimulation(simulationId, sortBy, sortDescending);
+            @RequestParam(required = false, value = "sortDescending") Boolean sortDescending,
+            @RequestParam(required = true, value = "page") int page,
+            @RequestParam(required = true, value = "pageSize") int pageSize) {
+        return this.simulationService.getSimulation(simulationId, sortBy, sortDescending, page, pageSize);
     }
 
 }
