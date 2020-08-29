@@ -105,7 +105,7 @@ public class StrategyAnalysisIntegrationTests {
                 }
             }
         }
-        String collectionName = "bettingExecutionMetaResults-" + new DateTime().getMillis();
+        String collectionName = "bettingExecutionMetaResults-BASIC-" + new DateTime().getMillis();
         mongoTemplate.getCollection("bettingExecutionMetaResults").rename(collectionName);
         SimulationAggregateResult simulationAggregateResult = computeAggregation(collectionName);
         mongoTemplate.save(simulationAggregateResult, "simulationAggregations");
