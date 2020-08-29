@@ -56,7 +56,7 @@ public class EventBook {
         return liveEvents;
     }
 
-    private String getEquivalentKey(String sport) {
+    public static String getEquivalentKey(String sport) {
         switch(sport) {
             case "TENN":
                 return "TENNIS";

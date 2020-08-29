@@ -1,11 +1,12 @@
 package lahsivjar.spring.websocket.template;
 
-import com.mongodb.BasicDBObject;
 import lahsivjar.spring.websocket.template.model.BettingExecutionMetaResults;
+import lahsivjar.spring.websocket.template.model.SimulationAggregateResult;
 import lahsivjar.spring.websocket.template.model.SimulationPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +30,7 @@ public class SimulationService {
     }
 
     // TODO: add record limit
-    public SimulationPage getSimulation(String id, String sortBy, Boolean sortDescending, int page, int pageSize) {
+    public SimulationPage getSimulation(String id, String sortBy, Boolean sortDescending, int page, int pageSize, String sportKey) {
         Query query = new Query();
         query.limit(pageSize); // TODO: use record limit
         query.skip(page*pageSize);
@@ -38,9 +39,18 @@ public class SimulationService {
             Sort.Direction sortDirection = _sortDescending ? Sort.Direction.DESC : Sort.Direction.ASC;
             query.with(new Sort(sortDirection, sortBy));
         }
+        if (sportKey != null && !sportKey.isEmpty()) {
+            query.addCriteria(Criteria.where("sport").is(sportKey));
+        }
         List<BettingExecutionMetaResults> bettingExecutionMetaResults = mongoTemplate.find(query, BettingExecutionMetaResults.class, id);
         long totalRecords = mongoTemplate.count(new Query(), id);
         long pages = totalRecords / pageSize;
         return new SimulationPage(bettingExecutionMetaResults, pages);
+    }
+
+    public SimulationAggregateResult getSimulationAggregate(String simulationId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("id").is(simulationId));
+        return this.mongoTemplate.findOne(query, SimulationAggregateResult.class, "simulationAggregations");
     }
 }

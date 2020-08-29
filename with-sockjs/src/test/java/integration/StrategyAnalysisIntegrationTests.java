@@ -1,6 +1,11 @@
 package integration;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Aggregates;
 import lahsivjar.spring.websocket.template.Application;
 import lahsivjar.spring.websocket.template.BettingExecutionMetaResultsRepository;
 import lahsivjar.spring.websocket.template.EventBook;
@@ -8,20 +13,28 @@ import lahsivjar.spring.websocket.template.model.*;
 import lahsivjar.spring.websocket.template.util.BettingFacilitatorService;
 import lombok.AllArgsConstructor;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import org.bson.BsonDocument;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.joda.time.DateTime;
-import org.junit.Ignore;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
+
+import static com.mongodb.client.model.Filters.exists;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
+
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOptions;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -47,19 +60,20 @@ public class StrategyAnalysisIntegrationTests {
     BettingExecutionMetaResultsRepository analysisRepository;
 
     @Test
-    @Ignore
+//    @Ignore
     public void renameCollection() {
         eventBook.setEnableUpdates(false);
-        mongoTemplate.getDb().getCollection("event").rename("eventDumpAug27");
+        mongoTemplate.getDb().getCollection("bettingExecutionMetaResults-1598637977138").rename("meta");
     }
 
     @Test
 //    @Ignore
-    public void testBasicStrategy() {
+    public void testBasicStrategy() throws Exception {
         eventBook.setEnableUpdates(false);
         List<Event> events = mongoTemplate.findAll(Event.class, "event");
         List<BettingExecutionMetaResults> bettingExecutionMetaResultsBuffer = new ArrayList<>();
         for (Event event : events) {
+            event.setSport(EventBook.getEquivalentKey(event.getSport()));
             Map<String, Market> markets = event.getMarkets();
             if (markets != null) {
                 for (Market market : markets.values()) {
@@ -91,7 +105,131 @@ public class StrategyAnalysisIntegrationTests {
                 }
             }
         }
-        mongoTemplate.getCollection("bettingExecutionMetaResults").rename("bettingExecutionMetaResults-"+new DateTime().getMillis());
+        String collectionName = "bettingExecutionMetaResults-" + new DateTime().getMillis();
+        mongoTemplate.getCollection("bettingExecutionMetaResults").rename(collectionName);
+        SimulationAggregateResult simulationAggregateResult = computeAggregation(collectionName);
+        mongoTemplate.save(simulationAggregateResult, "simulationAggregations");
+    }
+
+    @Test
+    public void testComputeAggregation() throws Exception {
+        computeAggregation("meta");
+    }
+
+    private SimulationAggregateResult computeAggregation(String collectionName) throws Exception {
+        SimulationAggregateResult simulationAggregateResult = new SimulationAggregateResult();
+        simulationAggregateResult.setResults(new HashMap<>());
+        simulationAggregateResult.setId(collectionName);
+        MongoDatabase database = mongoClient.getDatabase("test");
+        MongoCollection<Document> collection = database.getCollection(collectionName);
+        MongoCollection<Document> dbCollection = mongoClient.getDatabase("test").getCollection(collectionName, Document.class);
+//        AggregateIterable<Document> aggregateBySport = getSportAggregation(dbCollection);
+//        AggregateIterable<Document> sportAggregates = aggregateBySport.batchSize(500); // shouldn't be more than 500 sports
+        AggregateIterable<Document> sportAggregates = AggregationQueryUtil.getAggregationBySport(collection);
+        for (Document sportAggregate : sportAggregates) {
+            SimulationAggregateResultElement simulationAggregateResultElement = toAggregationResultElement(new JSONObject(sportAggregate.toJson()), true);
+            simulationAggregateResult.getResults().put(simulationAggregateResultElement.getSport(), simulationAggregateResultElement);
+        }
+        AggregateIterable<Document> allAggregations = AggregationQueryUtil.getAllAggregations(collection);
+        for (Document aggregation : allAggregations) {
+            SimulationAggregateResultElement simulationAggregateResultElement = toAggregationResultElement(new JSONObject(aggregation.toJson()), false);
+            simulationAggregateResult.getResults().put(simulationAggregateResultElement.getSport(), simulationAggregateResultElement);
+        }
+        return simulationAggregateResult;
+    }
+
+    private AggregateIterable<Document> getSportAggregation(MongoCollection<Document> dbCollection) {
+        String id = "{" +
+                "\"sport\":\"$sport\"" +
+                "}";
+        return dbCollection.aggregate(Arrays.asList(
+                getMatchStage(),
+                getSportAggregation(id)
+        ));
+    }
+
+    private AggregateIterable<Document> getAllAggregation(MongoCollection<Document> dbCollection) {
+        String id = "{\"_id\": null}";
+        return dbCollection.aggregate(Arrays.asList(
+                getMatchStage(),
+                getSportAggregation(id)
+        ));
+    }
+
+    private Bson getSportAggregation(String groupidJSON) {
+        return Aggregates.group(BsonDocument.parse(
+                "{" +
+                        "\"_id\":" + groupidJSON + "," +
+                        "\"netProfit\":{" +
+                        "\"$sum\":\"$profitRealized\"" +
+                        "}," +
+                        "\"averageProfit\":{" +
+                        "\"$avg\":\"$profitRealized\"" +
+                        "}," +
+                        "\"totalBets\":{" +
+                        "\"$sum\":\"$numBetsPlaced\"" +
+                        "}," +
+                        "\"averageBets\":{" +
+                        "\"$avg\":\"$numBetsPlaced" +
+                        "\"}," +
+                        "\"eventsBetOn\":{" +
+                        "\"$sum\":1" +
+                        "}" +
+                        "}"
+        ));
+    }
+
+    private Bson getMatchStage() {
+        return Aggregates.match(BsonDocument.parse(
+                "{\"" +
+                    "profitRealized\":{" +
+                        "\"$exists\":true" +
+                    "}," +
+                    "\"numBetsPlaced\":{" +
+                        "\"$exists\":true," +
+                        "\"$gt\":0" +
+                    "}" +
+                "}"));
+    }
+
+    @Test
+    public void testParseJsonDocument() throws Exception {
+        String json =
+                "{ " +
+                "\"_id\" : { " +
+                    "\"_id\" : { " +
+                        "\"sport\" : \"E-SPORTS\" " +
+                    "}, " +
+                    "\"netProfit\" : -4.75, " +
+                    "\"averageProfit\" : -4.75, " +
+                    "\"totalBets\" : 2, " +
+                    "\"averageBets\" : 2.0, " +
+                    "\"eventsBetOn\" : 1 " +
+                    "} " +
+                "}";
+        JSONObject jsonObject = new JSONObject(json);
+        toAggregationResultElement(jsonObject, true);
+    }
+
+    private static SimulationAggregateResultElement toAggregationResultElement(JSONObject jsonObject, boolean isBySport) throws JSONException {
+        SimulationAggregateResultElement sportSummary = new SimulationAggregateResultElement();
+//        JSONObject main = jsonObject.getJSONObject("_id");
+        if (isBySport) {
+            sportSummary.setSport(jsonObject.getJSONObject("_id").getString("sport"));
+        } else {
+            sportSummary.setSport(jsonObject.getString("_id"));
+        }
+        sportSummary.setNetProfit(jsonObject.getDouble("netProfit"));
+        sportSummary.setAverageProfit(jsonObject.getDouble("averageProfit"));
+        sportSummary.setTotalBets(jsonObject.getInt("totalBets"));
+        sportSummary.setAverageBets(jsonObject.getDouble("averageBets"));
+        sportSummary.setEventsBetOn(jsonObject.getJSONObject("eventsBetOn").getInt("$numberLong"));
+        sportSummary.setAverageFavoriteReversals(jsonObject.getDouble("averageFavoriteReversals"));
+        sportSummary.setAverageWinnerOddsStandardDeviation(jsonObject.getDouble("averageWinnerOddsStandardDeviation"));
+        sportSummary.setAverageLoserOddsStandardDeviation(jsonObject.getDouble("averageLoserOddsStandardDeviation"));
+        sportSummary.setAverageNumOddsQuoted(jsonObject.getDouble("averageNumOddsQuoted"));
+
+        return sportSummary;
     }
 
     private BettingExecutionMetaResults simulateBettingStrategy(Event event, Market market, Outcome outcome1, Outcome outcome2, List<Price> previousPrices1, List<Price> previousPrices2) {
@@ -109,32 +247,6 @@ public class StrategyAnalysisIntegrationTests {
             return null;
         }
         return bettingExecutionMetaResults;
-
-        // AGGREGATE COLUMNS:
-        // - average profit
-        // - average profit by sport
-        // - average favorite reversals
-        // - average favorite reversals by sport
-
-        // EVENT COLUMNS
-        // - base obj columns: sport, eventId, winning outcome description
-        // - num odds quotes
-        // - profit
-        // - num bets placed
-        // - worst odds quote (for winner)
-        // - best odds quote (for loser)
-        // - num favorite reversals and:
-        // - standard deviation for winner odds --> need to convert to fractional first
-        // - standard deviation for loser odds --> need to convert to fractional first
-        // - column for multiple betting strategies?? -> probably not
-
-        // SOLUTION
-        // how to accomplish:
-        //      - write results of meta object to DB collection
-        //      - make react table sortable by column
-        //      - server-side queries on sort, or in-memory? server-side ideal, but try column first
-
-
     }
 
     private List<OutcomeAndPriceTick> getMergedPrices(Outcome outcome1, Outcome outcome2, List<Price> previousPrices1, List<Price> previousPrices2) {
@@ -145,6 +257,7 @@ public class StrategyAnalysisIntegrationTests {
         for (Price price : previousPrices2) {
             outcomeAndPriceTicks.add(new OutcomeAndPriceTick(outcome2, price));
         }
+        // TODO: make sure sorted in correct direction
         outcomeAndPriceTicks.sort(Comparator.comparing(a -> a.price.getCreated()));
         return outcomeAndPriceTicks;
     }

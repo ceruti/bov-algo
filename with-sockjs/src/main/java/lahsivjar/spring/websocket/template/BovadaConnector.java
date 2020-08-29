@@ -1,5 +1,6 @@
 package lahsivjar.spring.websocket.template;
 
+import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -21,6 +22,8 @@ import java.util.logging.Level;
 @Component
 public class BovadaConnector {
 
+    private static final int REFRESH_PAGE_INTERVAL = 1000 * 60 * 10;
+
     private WebDriver driver;
 
     private SimpMessagingTemplate template;
@@ -34,6 +37,10 @@ public class BovadaConnector {
     private RestTemplate restTemplate = new RestTemplate();
 
     private EventBook eventBook;
+
+    private DateTime lastMessagedReceived = new DateTime();
+
+    private DateTime lastRefresh = new DateTime();
 
     @Autowired
     public BovadaConnector(SimpMessagingTemplate template,
@@ -67,12 +74,17 @@ public class BovadaConnector {
     @Scheduled(fixedDelay = 1000*60*10)
     public void refresh() {
         driver.navigate().to("https://www.bovada.lv/sports/live");
+        lastRefresh = new DateTime();
     }
 
     @Scheduled(fixedDelay = 50)
     public void funnelMessages() {
         if (!eventBook.isEnableUpdates()) {
             return;
+        }
+        if (lastMessagedReceived.isBefore(new DateTime().minusSeconds(20))
+            && lastRefresh.isBefore(new DateTime().minusMinutes(1))) {
+            refresh();
         }
         LogEntries logEntries = driver.manage().logs().get(LogType.PERFORMANCE);
         logEntries.forEach(entry->{
@@ -100,7 +112,7 @@ public class BovadaConnector {
                     _message.put("message", payload);
                     _message.put("timestamp", Long.toString(System.currentTimeMillis()));
 //                    chatHistoryDao.save(message); TODO: uncomment this?
-
+                    lastMessagedReceived = new DateTime();
                 }
             } catch (Exception e) {
 //                e.printStackTrace();

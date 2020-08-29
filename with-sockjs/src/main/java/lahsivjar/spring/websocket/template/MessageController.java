@@ -3,8 +3,9 @@ package lahsivjar.spring.websocket.template;
 import java.util.List;
 import java.util.Map;
 
-import lahsivjar.spring.websocket.template.model.BettingExecutionMetaResults;
 import lahsivjar.spring.websocket.template.model.Event;
+import lahsivjar.spring.websocket.template.model.SimulationAggregateResult;
+import lahsivjar.spring.websocket.template.model.SimulationAggregateResultElement;
 import lahsivjar.spring.websocket.template.model.SimulationPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -75,13 +76,19 @@ public class MessageController {
     }
 
     @RequestMapping(value = "/simulations/{simulationId}", method = RequestMethod.GET)
-    public SimulationPage getSimulationResult(
+    public SimulationPage getSimulationPage(
             @PathVariable(value="simulationId") String simulationId,
             @RequestParam(required = false, value = "sortBy") String sortBy,
             @RequestParam(required = false, value = "sortDescending") Boolean sortDescending,
             @RequestParam(required = true, value = "page") int page,
-            @RequestParam(required = true, value = "pageSize") int pageSize) {
-        return this.simulationService.getSimulation(simulationId, sortBy, sortDescending, page, pageSize);
+            @RequestParam(required = true, value = "pageSize") int pageSize,
+            @RequestParam(required = false, value = "filterBySport") String sportKey) {
+        return this.simulationService.getSimulation(simulationId, sortBy, sortDescending, page, pageSize, sportKey);
+    }
+
+    @RequestMapping(value = "/simulations/{simulationId}/aggregate", method = RequestMethod.GET)
+    public SimulationAggregateResult getSimulationAggregateResults(@PathVariable(value="simulationId") String simulationId) {
+        return this.simulationService.getSimulationAggregate(simulationId);
     }
 
 }
