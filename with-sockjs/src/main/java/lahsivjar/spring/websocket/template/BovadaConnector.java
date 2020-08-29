@@ -66,7 +66,7 @@ public class BovadaConnector {
     // every ten minutes, refresh the page to find new events. sometimes odds feeds will stop too
     @Scheduled(fixedDelay = 1000*60*10)
     public void refresh() {
-        driver.navigate().refresh();
+        driver.navigate().to("https://www.bovada.lv/sports/live");
     }
 
     @Scheduled(fixedDelay = 50)
