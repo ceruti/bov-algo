@@ -66,6 +66,15 @@ public class StrategyAnalysisIntegrationTests {
         mongoTemplate.getDb().getCollection("bettingExecutionMetaResults-1598637977138").rename("meta");
     }
 
+//    @Test
+    public void dropBadCollections() {
+        for (String collectionName : mongoTemplate.getCollectionNames()) {
+            if (collectionName.startsWith("bettingExecutionMetaResults-")) {
+                mongoTemplate.dropCollection(collectionName);
+            }
+        }
+    }
+
     @Test
 //    @Ignore
     public void testBasicStrategy() throws Exception {
@@ -122,9 +131,6 @@ public class StrategyAnalysisIntegrationTests {
         simulationAggregateResult.setId(collectionName);
         MongoDatabase database = mongoClient.getDatabase("test");
         MongoCollection<Document> collection = database.getCollection(collectionName);
-        MongoCollection<Document> dbCollection = mongoClient.getDatabase("test").getCollection(collectionName, Document.class);
-//        AggregateIterable<Document> aggregateBySport = getSportAggregation(dbCollection);
-//        AggregateIterable<Document> sportAggregates = aggregateBySport.batchSize(500); // shouldn't be more than 500 sports
         AggregateIterable<Document> sportAggregates = AggregationQueryUtil.getAggregationBySport(collection);
         for (Document sportAggregate : sportAggregates) {
             SimulationAggregateResultElement simulationAggregateResultElement = toAggregationResultElement(new JSONObject(sportAggregate.toJson()), true);
@@ -136,60 +142,6 @@ public class StrategyAnalysisIntegrationTests {
             simulationAggregateResult.getResults().put(simulationAggregateResultElement.getSport(), simulationAggregateResultElement);
         }
         return simulationAggregateResult;
-    }
-
-    private AggregateIterable<Document> getSportAggregation(MongoCollection<Document> dbCollection) {
-        String id = "{" +
-                "\"sport\":\"$sport\"" +
-                "}";
-        return dbCollection.aggregate(Arrays.asList(
-                getMatchStage(),
-                getSportAggregation(id)
-        ));
-    }
-
-    private AggregateIterable<Document> getAllAggregation(MongoCollection<Document> dbCollection) {
-        String id = "{\"_id\": null}";
-        return dbCollection.aggregate(Arrays.asList(
-                getMatchStage(),
-                getSportAggregation(id)
-        ));
-    }
-
-    private Bson getSportAggregation(String groupidJSON) {
-        return Aggregates.group(BsonDocument.parse(
-                "{" +
-                        "\"_id\":" + groupidJSON + "," +
-                        "\"netProfit\":{" +
-                        "\"$sum\":\"$profitRealized\"" +
-                        "}," +
-                        "\"averageProfit\":{" +
-                        "\"$avg\":\"$profitRealized\"" +
-                        "}," +
-                        "\"totalBets\":{" +
-                        "\"$sum\":\"$numBetsPlaced\"" +
-                        "}," +
-                        "\"averageBets\":{" +
-                        "\"$avg\":\"$numBetsPlaced" +
-                        "\"}," +
-                        "\"eventsBetOn\":{" +
-                        "\"$sum\":1" +
-                        "}" +
-                        "}"
-        ));
-    }
-
-    private Bson getMatchStage() {
-        return Aggregates.match(BsonDocument.parse(
-                "{\"" +
-                    "profitRealized\":{" +
-                        "\"$exists\":true" +
-                    "}," +
-                    "\"numBetsPlaced\":{" +
-                        "\"$exists\":true," +
-                        "\"$gt\":0" +
-                    "}" +
-                "}"));
     }
 
     @Test
@@ -324,47 +276,6 @@ public class StrategyAnalysisIntegrationTests {
         }
         return initialUnderdogSet;
     }
-
-    // EVENT COLUMNS
-    // - base obj columns: sport, eventId, winning outcome description
-    // - num odds quotes
-    // - profit
-    // - num bets placed
-    // - worst odds quote (for winner)
-    // - best odds quote (for loser)
-    // - num favorite reversals and:
-    // - standard deviation for winner odds --> need to convert to fractional first
-    // - standard deviation for loser odds --> need to convert to fractional first
-    // - column for multiple betting strategies?? -> probably not
-//    @Data
-//    @NoArgsConstructor
-//    @AllArgsConstructor
-//    public static class BettingExecutionMetaResults {
-////        @Id
-////        private ObjectId id = new ObjectId();
-//        private Long eventId;
-//        private String eventDescription;
-//        private String winningOutcomeDescription;
-//        private String sport;
-//        private double profitRealized;
-//
-//        boolean winnerWasInitialUnderdog;
-//        private int favoriteReversals;
-//        private int worstAmericanOddsForWinner = -1000000;
-//        private int bestOddsForLoser = 1000000;
-//        private double winnerOddsStandardDeviation;
-//        private double loserOddsStandardDeviation;
-//        private int numBetsPlaced;
-//        private int numOddsQuoted;
-//
-//        public BettingExecutionMetaResults(Event event, Market market, Outcome outcome1, Outcome outcome2, String winningOutcomeId) {
-//            this.eventId = event.getId();
-//            this.eventDescription = event.getDescription();
-//            Outcome winningOutcome = outcome1.getId().equals(winningOutcomeId) ? outcome1 : outcome2;
-//            this.winningOutcomeDescription = winningOutcome.getDescription();
-//            this.sport = event.getSport();
-//        }
-//    }
 
     private String getWinningOutcome(Market market, List<OutcomeAndPriceTick> outcomeAndPriceTicks) {
         for (int i = outcomeAndPriceTicks.size()-1; i >= 0; i--) {

@@ -32,19 +32,23 @@ public class SimulationService {
     // TODO: add record limit
     public SimulationPage getSimulation(String id, String sortBy, Boolean sortDescending, int page, int pageSize, String sportKey) {
         Query query = new Query();
-        query.limit(pageSize); // TODO: use record limit
+        if (sportKey != null && !sportKey.isEmpty()) {
+            query.addCriteria(Criteria.where("sport").is(sportKey));
+        }
+        query.limit(pageSize);
         query.skip(page*pageSize);
         if (sortBy != null && !sortBy.isEmpty()) {
             boolean _sortDescending = sortDescending == null ? true : sortDescending;
             Sort.Direction sortDirection = _sortDescending ? Sort.Direction.DESC : Sort.Direction.ASC;
             query.with(new Sort(sortDirection, sortBy));
         }
-        if (sportKey != null && !sportKey.isEmpty()) {
-            query.addCriteria(Criteria.where("sport").is(sportKey));
-        }
         List<BettingExecutionMetaResults> bettingExecutionMetaResults = mongoTemplate.find(query, BettingExecutionMetaResults.class, id);
-        long totalRecords = mongoTemplate.count(new Query(), id);
-        long pages = totalRecords / pageSize;
+        Query queryWithoutLimitAndSkip = new Query();
+        if (sportKey != null && !sportKey.isEmpty()) {
+            queryWithoutLimitAndSkip.addCriteria(Criteria.where("sport").is(sportKey));
+        }
+        long totalRecords = mongoTemplate.count(queryWithoutLimitAndSkip, id);
+        long pages = (long) Math.ceil((1.0 * totalRecords) / pageSize);
         return new SimulationPage(getSimulationAggregate(id), bettingExecutionMetaResults, pages);
     }
 
