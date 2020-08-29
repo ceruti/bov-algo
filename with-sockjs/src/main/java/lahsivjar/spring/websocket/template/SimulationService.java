@@ -45,7 +45,7 @@ public class SimulationService {
         List<BettingExecutionMetaResults> bettingExecutionMetaResults = mongoTemplate.find(query, BettingExecutionMetaResults.class, id);
         long totalRecords = mongoTemplate.count(new Query(), id);
         long pages = totalRecords / pageSize;
-        return new SimulationPage(bettingExecutionMetaResults, pages);
+        return new SimulationPage(getSimulationAggregate(id), bettingExecutionMetaResults, pages);
     }
 
     public SimulationAggregateResult getSimulationAggregate(String simulationId) {

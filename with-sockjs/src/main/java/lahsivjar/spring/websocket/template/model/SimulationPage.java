@@ -11,6 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 public class SimulationPage {
 
+    private SimulationAggregateResult aggregateResult;
+
     private List<BettingExecutionMetaResults> bettingExecutionMetaResultsList;
 
     private long pages;
