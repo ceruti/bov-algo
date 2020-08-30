@@ -83,9 +83,22 @@ public class LiveFeedUpdateService {
             toUpdate.setSport(eventUpdate.getString("sport"));
         }
         if (eventUpdate.has("latestScore")) {
-            JSONObject latestScore = eventUpdate.getJSONObject("latestScore");
-            toUpdate.setVisitorScore(latestScore.getString("visitor"));
-            toUpdate.setHomeScore(latestScore.getString("home"));
+            if ("TENNIS".equalsIgnoreCase(EventBook.getEquivalentKey(eventUpdate.getString("sport")))) {
+                updateTennisScore(eventUpdate, toUpdate);
+            } else {
+                JSONObject latestScore = eventUpdate.getJSONObject("latestScore");
+                toUpdate.setVisitorScore(latestScore.getString("visitor"));
+                toUpdate.setHomeScore(latestScore.getString("home"));
+            }
+        }
+        if (eventUpdate.has("currentPeriodScore")) {
+            JSONObject currentPeriodScore = eventUpdate.getJSONObject("currentPeriodScore");
+            try {
+                toUpdate.setCurrentPeriodHomeScore(currentPeriodScore.getInt("home"));
+                toUpdate.setCurrentPeriodHomeScore(currentPeriodScore.getInt("visitor"));
+            } catch (Exception e) { // have only seen this as an int but it could be a string?
+                e.printStackTrace();
+            }
         }
         if (eventUpdate.has("gameStatus")) {
             String gameStatus = eventUpdate.getString("gameStatus");
@@ -95,8 +108,25 @@ public class LiveFeedUpdateService {
             }
         }
         updateClock(toUpdate, eventUpdate);
+        if (!toUpdate.isEndingSoon() && SportLogicUtil.isEndingSoon(toUpdate)) {
+            toUpdate.setEndingSoon(true);
+        }
         System.out.println(String.format("[event %d] Updated event: %s", toUpdate.getId(), toUpdate.getDescription()));
         return true;
+    }
+
+    private static void updateTennisScore(JSONObject eventUpdate, Event toUpdate) {
+        if (eventUpdate.has("sportDetails")) {
+            JSONObject sportDetails = eventUpdate.getJSONObject("sportDetails");
+            if (sportDetails.has("tennis")) {
+                JSONObject tennisDetails = sportDetails.getJSONObject("tennis");
+                if (tennisDetails.has("sets")) {
+                    JSONObject sets = tennisDetails.getJSONObject("sets");
+                    toUpdate.setHomeScore(Integer.toString(sets.getInt("home")));
+                    toUpdate.setVisitorScore(Integer.toString(sets.getInt("visitor")));
+                }
+            }
+        }
     }
 
     private static void updateWinningOutcome(Event toUpdate) {
@@ -129,10 +159,27 @@ public class LiveFeedUpdateService {
         JSONObject clockUpdate = eventUpdate.getJSONObject("clock");
         if (clockUpdate != null) {
             Clock clock = new Clock();
-            clock.setPeriod(clockUpdate.getString("period"));
-            clock.setPeriodNumber(clockUpdate.getInt("periodNumber"));
-            clock.setGameTime(clockUpdate.getString("gameTime"));
-            clock.setTicking(clockUpdate.getBoolean("isTicking"));
+            if (clockUpdate.has("period")) {
+                clock.setPeriod(clockUpdate.getString("period"));
+            }
+            if (clockUpdate.has("periodNumber")) {
+                clock.setPeriodNumber(clockUpdate.getInt("periodNumber"));
+            }
+            if (clockUpdate.has("gameTime")) {
+                clock.setGameTime(clockUpdate.getString("gameTime"));
+            }
+            if (clockUpdate.has("isTicking")) {
+                clock.setTicking(clockUpdate.getBoolean("isTicking"));
+            }
+            if (clockUpdate.has("numberOfPeriods")) {
+                clock.setNumberOfPeriods(clockUpdate.getInt("numberOfPeriods"));
+            }
+            if (clockUpdate.has("direction")) {
+                clock.setDirection(clockUpdate.getString("direction"));
+            }
+            if (clockUpdate.has("relativeGameTimeInSeconds")) {
+                clock.setRelativeGameTimeInSeconds(clockUpdate.getInt("relativeGameTimeInSeconds"));
+            }
             toUpdate.setClock(clock);
         }
     }

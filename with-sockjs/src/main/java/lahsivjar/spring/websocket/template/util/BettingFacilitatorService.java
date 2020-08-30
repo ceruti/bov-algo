@@ -149,7 +149,7 @@ public class BettingFacilitatorService {
     }
 
     public void updateBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price, Strategy stategy) {
-        if (!event.isBettingEnabled() || !outcome.isBettingEnabled()) {
+        if (!event.isBettingEnabled() || !outcome.isBettingEnabled() || event.isEndingSoon()) {
             return;
         }
         switch (stategy) {

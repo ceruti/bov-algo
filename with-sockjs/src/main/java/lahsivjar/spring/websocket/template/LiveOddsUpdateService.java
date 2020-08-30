@@ -35,6 +35,7 @@ public class LiveOddsUpdateService {
             for (Long eventId : eventIds) {
                 if (eventId != null && this.eventBook.getBook().containsKey(eventId)) {
                     Event existingEvent = this.eventBook.getBook().get(eventId);
+                    existingEvent.getRawWireMessages().add(wireMessage);
                     if (liveFeedUpdateService.updateEvent(existingEvent, wireMessage)) {
                         existingEvent.markUpdated();
                         simpMessagingTemplate.convertAndSend("/topic/all", existingEvent);

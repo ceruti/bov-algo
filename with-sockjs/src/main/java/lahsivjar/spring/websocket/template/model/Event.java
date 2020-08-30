@@ -1,9 +1,13 @@
 package lahsivjar.spring.websocket.template.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.json.JSONObject;
 import org.springframework.data.annotation.Id;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -13,6 +17,8 @@ public class Event {
     private long id;
     private String homeScore;
     private String visitorScore;
+    private int currentPeriodHomeScore;
+    private int currentPeriodVisitorScore;
 //    private Date vendorLastUpdated;
     private Clock clock;
     private String sport;
@@ -25,6 +31,12 @@ public class Event {
     private String gameStatus;
     private Date lastUpdated;
     private Date createdAt;
+    private boolean isEndingSoon;
+
+    @JsonIgnore
+    List<String> rawWireMessages = new ArrayList<>();
+    @JsonIgnore
+    List<JSONObject> rawEventSummaries = new ArrayList<>();
 
     public Event() {
 

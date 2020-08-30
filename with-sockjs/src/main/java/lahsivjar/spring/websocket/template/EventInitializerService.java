@@ -45,10 +45,11 @@ public class EventInitializerService {
             JSONObject parentEl = parentJSON.getJSONObject(i);
             JSONArray events = parentEl.getJSONArray("events");
             for (int j=0; j<events.length(); j++) {
-                JSONObject event = events.getJSONObject(j);
-                Long id = Long.parseLong(event.getString("id"));
-                Event parsedEvent = EventParseUtil.parseEvent(event);
+                JSONObject rawEvent = events.getJSONObject(j);
+                Long id = Long.parseLong(rawEvent.getString("id"));
+                Event parsedEvent = EventParseUtil.parseEvent(rawEvent);
                 if (eventBook.getBook().containsKey(id)) {
+                    eventBook.getBook().get(id).getRawEventSummaries().add(rawEvent);
                     eventBook.updateEvent(parsedEvent);
                 } else {
                     eventBook.addEvent(parsedEvent);
