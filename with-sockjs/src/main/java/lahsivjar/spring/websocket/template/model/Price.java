@@ -20,7 +20,9 @@ public class Price {
     public Price(int american, String id, Clock clockAtTimeOfPrice, String homeScoreAtTimeOfPrice, String visitorScoreAtTimeOfPrice) {
         this.american = american;
         this.id = id;
-        this.clockAtTimeOfPrice = clockAtTimeOfPrice.clone();
+        if (clockAtTimeOfPrice != null) {
+            this.clockAtTimeOfPrice = clockAtTimeOfPrice.clone();
+        }
         this.homeScoreAtTimeOfPrice = homeScoreAtTimeOfPrice;
         this.visitorScoreAtTimeOfPrice = visitorScoreAtTimeOfPrice;
     }
