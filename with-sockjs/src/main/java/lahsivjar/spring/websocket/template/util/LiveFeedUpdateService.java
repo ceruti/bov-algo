@@ -1,7 +1,6 @@
 package lahsivjar.spring.websocket.template.util;
 
 import lahsivjar.spring.websocket.template.EventBook;
-import lahsivjar.spring.websocket.template.LiveOddsUpdateService;
 import lahsivjar.spring.websocket.template.model.*;
 import lombok.Data;
 import org.apache.commons.text.StringEscapeUtils;
@@ -63,7 +62,7 @@ public class LiveFeedUpdateService {
                             && wireMessage.getOutcomeId() != null
                             && wireMessage.getAmericanOdds() != null
                             && market.getOutcomes().containsKey(wireMessage.getOutcomeId())) {
-                        updated = updateOutcome(wireMessage, market, toUpdate.getId());
+                        updated = updateOutcome(wireMessage, market, toUpdate.getId(), toUpdate);
                     }
                 }
             }
@@ -138,7 +137,7 @@ public class LiveFeedUpdateService {
         }
     }
 
-    private boolean updateOutcome(WireMessage wireMessage, Market market, long eventId) {
+    private boolean updateOutcome(WireMessage wireMessage, Market market, long eventId, Event toUpdate) {
         Outcome outcomeToUpdate = market.getOutcomes().get(wireMessage.getOutcomeId());
         wireMessage.setDescription(outcomeToUpdate.getDescription());
         Price previousPrice = outcomeToUpdate.getPrice();
@@ -147,7 +146,7 @@ public class LiveFeedUpdateService {
             if (previousPrices == null) {
                 previousPrices = new ArrayList<>();
             }
-            Price newPrice = new Price(wireMessage.getAmericanOdds(), previousPrice.getId(), new Date());
+            Price newPrice = new Price(wireMessage.getAmericanOdds(), previousPrice.getId(), toUpdate.getClock(), toUpdate.getHomeScore(), toUpdate.getVisitorScore());
             previousPrices.add(previousPrice);
             outcomeToUpdate.setPreviousPrices(previousPrices);
             outcomeToUpdate.setPrice(newPrice);
