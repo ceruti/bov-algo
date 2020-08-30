@@ -47,24 +47,24 @@ public class MessageController {
     // NOTE: these requests are served over HTTPS instead of WebSocket because WebSockets are not as reliable and these commands are critical, even if latency is higher
 
     @RequestMapping(value = "/events/{eventId}/enable", method = RequestMethod.PUT)
-    public void enableEventForBetting(@PathVariable(value="eventId") String eventId) {
+    public void enableEventForBetting(@PathVariable(value="eventId") Long eventId) {
         this.eventBook.enableEventForBetting(eventId);
     }
 
     @RequestMapping(value = "/events/{eventId}/disable", method = RequestMethod.PUT)
-    public void disableEventForBetting(@PathVariable(value="eventId") String eventId) {
+    public void disableEventForBetting(@PathVariable(value="eventId") Long eventId) {
         this.eventBook.disableEventForBetting(eventId);
     }
 
     @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/enable", method = RequestMethod.PUT)
-    public void enableOutcomeForBetting(@PathVariable(value="eventId") String eventId,
+    public void enableOutcomeForBetting(@PathVariable(value="eventId") Long eventId,
                                         @PathVariable(value="marketId") String marketId,
                                         @PathVariable(value="outcomeId") String outcomeId) {
         this.eventBook.enableOutcomeForBetting(eventId, marketId, outcomeId);
     }
 
     @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/disable", method = RequestMethod.PUT)
-    public void disableOutcomeForBetting(@PathVariable(value="eventId") String eventId,
+    public void disableOutcomeForBetting(@PathVariable(value="eventId") Long eventId,
                                          @PathVariable(value="marketId") String marketId,
                                          @PathVariable(value="outcomeId") String outcomeId) {
         this.eventBook.disableOutcomeForBetting(eventId, marketId, outcomeId);

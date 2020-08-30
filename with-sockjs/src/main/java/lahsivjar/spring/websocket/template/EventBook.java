@@ -111,19 +111,19 @@ public class EventBook {
         this.enableUpdates = enableUpdates;
     }
 
-    public void enableEventForBetting(String eventId) {
+    public void enableEventForBetting(Long eventId) {
         this.book.get(eventId).enableBetting();
     }
 
-    public void disableEventForBetting(String eventId) {
+    public void disableEventForBetting(Long eventId) {
         this.book.get(eventId).disableBetting();
     }
 
-    public void enableOutcomeForBetting(String eventId, String marketId, String outcomeId) {
+    public void enableOutcomeForBetting(Long eventId, String marketId, String outcomeId) {
         this.book.get(eventId).getMarkets().get(marketId).getOutcomes().get(outcomeId).enableBetting();
     }
 
-    public void disableOutcomeForBetting(String eventId, String marketId, String outcomeId) {
+    public void disableOutcomeForBetting(Long eventId, String marketId, String outcomeId) {
         this.book.get(eventId).getMarkets().get(marketId).getOutcomes().get(outcomeId).disableBetting();
     }
 }
