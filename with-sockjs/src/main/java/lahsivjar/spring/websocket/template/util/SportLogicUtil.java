@@ -5,7 +5,7 @@ import lahsivjar.spring.websocket.template.model.Event;
 
 public class SportLogicUtil {
 
-    public static final int MINUTES_LEFT_IN_BASKETBALL_GAME = 5;
+    public static final int MINUTES_LEFT_IN_FINAL_PERIOD = 5;
 
     public static boolean isEndingSoon(Event event) {
         switch(EventBook.getEquivalentKey(event.getSport())) {
@@ -42,7 +42,15 @@ public class SportLogicUtil {
     }
 
     private static boolean isFootballEventEndingSoon(Event event) {
-        return false; // TODO: implement
+        return isUnderFiveMinutes(event);
+    }
+
+    private static boolean isUnderFiveMinutes(Event event) {
+        GameTime gameTime = getGameTime(event);
+        if (gameTime != null) {
+            return isFinalPeriod(event) && gameTime.minutes < MINUTES_LEFT_IN_FINAL_PERIOD;
+        }
+        return false;
     }
 
     private static boolean isCricketEventEndingSoon(Event event) {
@@ -66,11 +74,7 @@ public class SportLogicUtil {
     }
 
     private static boolean isBasketballEventEndingSoon(Event event) {
-        GameTime gameTime = getGameTime(event);
-        if (gameTime != null) {
-            return isFinalPeriod(event) && gameTime.minutes < MINUTES_LEFT_IN_BASKETBALL_GAME;
-        }
-        return false;
+        return isUnderFiveMinutes(event);
     }
 
     private static boolean isFinalPeriod(Event event) {
@@ -82,7 +86,7 @@ public class SportLogicUtil {
     }
 
     private static boolean isHockeyEventEndingSoon(Event event) {
-        return false; // TODO: implement
+        return isUnderFiveMinutes(event);
     }
 
     private static boolean isTennisEventEndingSoon(Event event) {
