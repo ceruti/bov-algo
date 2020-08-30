@@ -193,7 +193,7 @@ public class LiveFeedUpdateService {
             if (previousPrices == null) {
                 previousPrices = new ArrayList<>();
             }
-            Price newPrice = new Price(wireMessage.getAmericanOdds(), previousPrice.getId(), toUpdate.getClock(), toUpdate.getHomeScore(), toUpdate.getVisitorScore());
+            Price newPrice = new Price(wireMessage.getAmericanOdds(), previousPrice.getId(), toUpdate.getClock(), toUpdate.getHomeScore(), toUpdate.getVisitorScore(), toUpdate.getCurrentPeriodHomeScore(), toUpdate.getCurrentPeriodVisitorScore());
             previousPrices.add(previousPrice);
             outcomeToUpdate.setPreviousPrices(previousPrices);
             outcomeToUpdate.setPrice(newPrice);

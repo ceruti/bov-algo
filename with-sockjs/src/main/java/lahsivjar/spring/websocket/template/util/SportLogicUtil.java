@@ -70,7 +70,12 @@ public class SportLogicUtil {
     }
 
     private static boolean isTableTennisEventEndingSoon(Event event) {
-        return false; // TODO: implement
+        int homeGamesWon = Integer.parseInt(event.getHomeScore());
+        int homePointsWonThisGame = event.getCurrentPeriodHomeScore();
+        int visitorGamesWon = Integer.parseInt(event.getVisitorScore());
+        int visitorPointsWonThisGame = event.getCurrentPeriodVisitorScore();
+        return isWithinFivePointsOfTableTennisVictory(homeGamesWon, homePointsWonThisGame, 3)
+                || isWithinFivePointsOfTableTennisVictory(visitorGamesWon, visitorPointsWonThisGame, 3);
     }
 
     private static boolean isBasketballEventEndingSoon(Event event) {
@@ -101,6 +106,10 @@ public class SportLogicUtil {
 
     private static boolean isWithinTwoGamesOfTennisVictory(int setsWon, int gamesWonThisSet, int setsToWinMatch) {
         return setsWon + 1 == setsToWinMatch && gamesWonThisSet >=4;
+    }
+
+    private static boolean isWithinFivePointsOfTableTennisVictory(int gamesWon, int pointsWonThisGame, int gamesToWinMatch) {
+        return gamesWon + 1 == gamesToWinMatch && pointsWonThisGame >= 5;
     }
 
     private static int setsToWinTennisMatch(Event event) {

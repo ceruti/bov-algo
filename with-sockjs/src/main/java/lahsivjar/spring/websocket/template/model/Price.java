@@ -16,8 +16,10 @@ public class Price {
     private Clock clockAtTimeOfPrice;
     private String homeScoreAtTimeOfPrice;
     private String visitorScoreAtTimeOfPrice;
+    private int currentPeriodHomeScoreAtTimeOfPrice;
+    private int currentPeriodVisitorScoreAtTimeOfPrice;
 
-    public Price(int american, String id, Clock clockAtTimeOfPrice, String homeScoreAtTimeOfPrice, String visitorScoreAtTimeOfPrice) {
+    public Price(int american, String id, Clock clockAtTimeOfPrice, String homeScoreAtTimeOfPrice, String visitorScoreAtTimeOfPrice, int currentPeriodHomeScoreAtTimeOfPrice, int currentPeriodVisitorScoreAtTimeOfPrice) {
         this.american = american;
         this.id = id;
         if (clockAtTimeOfPrice != null) {
@@ -25,6 +27,8 @@ public class Price {
         }
         this.homeScoreAtTimeOfPrice = homeScoreAtTimeOfPrice;
         this.visitorScoreAtTimeOfPrice = visitorScoreAtTimeOfPrice;
+        this.currentPeriodHomeScoreAtTimeOfPrice= currentPeriodHomeScoreAtTimeOfPrice;
+        this.currentPeriodVisitorScoreAtTimeOfPrice = currentPeriodVisitorScoreAtTimeOfPrice;
     }
 
     public void updateCreated() {
