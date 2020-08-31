@@ -95,7 +95,7 @@ public class LiveFeedUpdateService {
             JSONObject currentPeriodScore = eventUpdate.getJSONObject("currentPeriodScore");
             try {
                 toUpdate.setCurrentPeriodHomeScore(currentPeriodScore.getInt("home"));
-                toUpdate.setCurrentPeriodHomeScore(currentPeriodScore.getInt("visitor"));
+                toUpdate.setCurrentPeriodVisitorScore(currentPeriodScore.getInt("visitor"));
             } catch (Exception e) { // have only seen this as an int but it could be a string?
                 e.printStackTrace();
             }

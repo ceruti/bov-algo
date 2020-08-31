@@ -28,13 +28,15 @@ public class Market {
         bettingSession.update(additionalBet, outcomeId);
     }
 
-    private double getOutcomeProbability(String outcome1Id) {
-        return getProbability(outcomes.get(outcome1Id));
+    private double getOutcomeProbability(String outcome, String opposingOutcome) {
+        return getProbability(outcomes.get(outcome), outcomes.get(opposingOutcome));
     }
 
-    public static double getProbability(Outcome outcome) {
-        int americanOutcomeOdds = outcome.getPrice().getAmerican();
-        return toFractionalOdds(americanOutcomeOdds);
+    public static double getProbability(Outcome outcome, Outcome opposingOutcome) {
+        // we average the two lines since bookies undervalue long shots and over estimate favorites
+        double probabilityByThisOutcomeOdds = toFractionalOdds(outcome.getPrice().getAmerican());
+        double probabilityByOtherOutcomeOdds = 1 - toFractionalOdds(opposingOutcome.getPrice().getAmerican());
+        return (probabilityByThisOutcomeOdds + probabilityByOtherOutcomeOdds) / 2.0;
     }
 
     public static double toFractionalOdds(int americanOutcomeOdds) {
@@ -50,8 +52,8 @@ public class Market {
     @JsonProperty("expectedProfit")
     public double getExpectedProfit() {
         if (bettingSession != null) {
-            return bettingSession.getNetProfitInOutcome1WinEvent() * getOutcomeProbability(bettingSession.getOutcome1Id())
-                    + bettingSession.getNetProfitInOutcome2WinEvent() * getOutcomeProbability(bettingSession.getOutcome2Id());
+            return bettingSession.getNetProfitInOutcome1WinEvent() * getOutcomeProbability(bettingSession.getOutcome1Id(), bettingSession.getOutcome2Id())
+                    + bettingSession.getNetProfitInOutcome2WinEvent() * getOutcomeProbability(bettingSession.getOutcome2Id(), bettingSession.getOutcome1Id());
         }
         return 0.0;
     }

@@ -212,22 +212,22 @@ public class EventParseUtilTest {
         System.out.println("done");
     }
 
-    @Test
-    public void test2() {
-        Outcome outcomePlus200 = new Outcome();
-        Price pricePlus200 = new Price();
-        pricePlus200.setAmerican(200);
-        outcomePlus200.setPrice(pricePlus200);
-        System.out.println(Market.getProbability(outcomePlus200));
-    }
-
-    @Test
-    public void test3() {
-        Outcome outcomeMinus200 = new Outcome();
-        Price priceMinus200 = new Price();
-        priceMinus200.setAmerican(-200);
-        outcomeMinus200.setPrice(priceMinus200);
-        System.out.println(Market.getProbability(outcomeMinus200));
-    }
+//    @Test
+//    public void test2() {
+//        Outcome outcomePlus200 = new Outcome();
+//        Price pricePlus200 = new Price();
+//        pricePlus200.setAmerican(200);
+//        outcomePlus200.setPrice(pricePlus200);
+//        System.out.println(Market.getProbability(outcomePlus200));
+//    }
+//
+//    @Test
+//    public void test3() {
+//        Outcome outcomeMinus200 = new Outcome();
+//        Price priceMinus200 = new Price();
+//        priceMinus200.setAmerican(-200);
+//        outcomeMinus200.setPrice(priceMinus200);
+//        System.out.println(Market.getProbability(outcomeMinus200));
+//    }
 
 }

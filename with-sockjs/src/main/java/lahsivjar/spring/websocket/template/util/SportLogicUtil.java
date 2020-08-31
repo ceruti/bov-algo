@@ -5,7 +5,12 @@ import lahsivjar.spring.websocket.template.model.Event;
 
 public class SportLogicUtil {
 
-    public static final int MINUTES_LEFT_IN_FINAL_PERIOD = 5;
+    public static final int MINUTES_LEFT_IN_TIME_BASED_GAME = 5;
+    public static final int TENNIS_FINAL_SET_NUM_GAMES_THRESHOLD = 4;
+    public static final int TABLE_TENNIS_FINAL_GAME_NUM_POINTS_THRESHOLD = 5;
+    public static final int TABLE_TENNIS_GAMES_TO_WIN_MATCH = 3;
+    public static final int VOLLEYBALL_FINAL_SET_NUM_POINTS_THRESHOLD = 5;
+    public static final int VOLLEYBALL_NUM_SETS_TO_WIN_MATCH = 3;
 
     public static boolean isEndingSoon(Event event) {
         switch(EventBook.getEquivalentKey(event.getSport())) {
@@ -38,17 +43,17 @@ public class SportLogicUtil {
     }
 
     private static boolean isVolleyBallEventEndingSoon(Event event) {
-        return false; // TODO: implement
+        return isPeriodScoreBasedGameEndingSoon(event, VOLLEYBALL_FINAL_SET_NUM_POINTS_THRESHOLD, VOLLEYBALL_NUM_SETS_TO_WIN_MATCH);
     }
 
     private static boolean isFootballEventEndingSoon(Event event) {
-        return isUnderFiveMinutes(event);
+        return isWithinFinalMinutesOfTimeBasedMatch(event);
     }
 
-    private static boolean isUnderFiveMinutes(Event event) {
+    private static boolean isWithinFinalMinutesOfTimeBasedMatch(Event event) {
         GameTime gameTime = getGameTime(event);
         if (gameTime != null) {
-            return isFinalPeriod(event) && gameTime.minutes < MINUTES_LEFT_IN_FINAL_PERIOD;
+            return isFinalPeriod(event) && gameTime.minutes < MINUTES_LEFT_IN_TIME_BASED_GAME;
         }
         return false;
     }
@@ -70,16 +75,20 @@ public class SportLogicUtil {
     }
 
     private static boolean isTableTennisEventEndingSoon(Event event) {
+        return isPeriodScoreBasedGameEndingSoon(event, TABLE_TENNIS_FINAL_GAME_NUM_POINTS_THRESHOLD, TABLE_TENNIS_GAMES_TO_WIN_MATCH);
+    }
+
+    private static boolean isPeriodScoreBasedGameEndingSoon(Event event, int periodScorePointThreshold, int primaryScoreToWinMatch) {
         int homeGamesWon = Integer.parseInt(event.getHomeScore());
         int homePointsWonThisGame = event.getCurrentPeriodHomeScore();
         int visitorGamesWon = Integer.parseInt(event.getVisitorScore());
         int visitorPointsWonThisGame = event.getCurrentPeriodVisitorScore();
-        return isWithinFivePointsOfTableTennisVictory(homeGamesWon, homePointsWonThisGame, 3)
-                || isWithinFivePointsOfTableTennisVictory(visitorGamesWon, visitorPointsWonThisGame, 3);
+        return isWithinPeriodScoreOfVictory(homeGamesWon, homePointsWonThisGame, primaryScoreToWinMatch, periodScorePointThreshold)
+                || isWithinPeriodScoreOfVictory(visitorGamesWon, visitorPointsWonThisGame, primaryScoreToWinMatch, periodScorePointThreshold);
     }
 
     private static boolean isBasketballEventEndingSoon(Event event) {
-        return isUnderFiveMinutes(event);
+        return isWithinFinalMinutesOfTimeBasedMatch(event);
     }
 
     private static boolean isFinalPeriod(Event event) {
@@ -91,25 +100,16 @@ public class SportLogicUtil {
     }
 
     private static boolean isHockeyEventEndingSoon(Event event) {
-        return isUnderFiveMinutes(event);
+        return isWithinFinalMinutesOfTimeBasedMatch(event);
     }
 
     private static boolean isTennisEventEndingSoon(Event event) {
         int setsToWinMatch = setsToWinTennisMatch(event);
-        int homeSetsWon = Integer.parseInt(event.getHomeScore());
-        int homeGamesWonThisSet = event.getCurrentPeriodHomeScore();
-        int visitorSetsWon = Integer.parseInt(event.getVisitorScore());
-        int visitorGamesWonThisSet = event.getCurrentPeriodVisitorScore();
-        return isWithinTwoGamesOfTennisVictory(homeSetsWon, homeGamesWonThisSet, setsToWinMatch)
-                || isWithinTwoGamesOfTennisVictory(visitorSetsWon, visitorGamesWonThisSet, setsToWinMatch);
+        return isPeriodScoreBasedGameEndingSoon(event, TENNIS_FINAL_SET_NUM_GAMES_THRESHOLD, setsToWinMatch);
     }
 
-    private static boolean isWithinTwoGamesOfTennisVictory(int setsWon, int gamesWonThisSet, int setsToWinMatch) {
-        return setsWon + 1 == setsToWinMatch && gamesWonThisSet >=4;
-    }
-
-    private static boolean isWithinFivePointsOfTableTennisVictory(int gamesWon, int pointsWonThisGame, int gamesToWinMatch) {
-        return gamesWon + 1 == gamesToWinMatch && pointsWonThisGame >= 5;
+    private static boolean isWithinPeriodScoreOfVictory(int competitorPrimaryScore, int competitorPeriodScore, int primaryScoreToWinMatch, int periodScorePointThreshold) {
+        return competitorPrimaryScore + 1 == primaryScoreToWinMatch && competitorPeriodScore >= periodScorePointThreshold;
     }
 
     private static int setsToWinTennisMatch(Event event) {
