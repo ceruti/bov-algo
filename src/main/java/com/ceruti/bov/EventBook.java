@@ -3,6 +3,9 @@ package com.ceruti.bov;
 import com.ceruti.bov.model.Event;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
@@ -19,14 +22,22 @@ public class EventBook {
 
     private NullAwareBeanUtilsBean nullAwareBeanUtilsBean;
     private SimpMessagingTemplate simpMessagingTemplate;
+    private MongoTemplate mongoTemplate;
 
     private boolean enableUpdates = true;
 
     @Autowired
-    public EventBook(NullAwareBeanUtilsBean nullAwareBeanUtilsBean, SimpMessagingTemplate simpMessagingTemplate) {
+    public EventBook(NullAwareBeanUtilsBean nullAwareBeanUtilsBean, SimpMessagingTemplate simpMessagingTemplate, MongoTemplate mongoTemplate) {
         this.nullAwareBeanUtilsBean = nullAwareBeanUtilsBean;
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.mongoTemplate = mongoTemplate;
         book = new HashMap<>();
+        Date thirtyMinutesAgo = new DateTime().minusMinutes(30).toDate();
+        List<Event> events = this.mongoTemplate.find(Query.query(Criteria.where("lastUpdated").gte(thirtyMinutesAgo)), Event.class, "event");
+        for (Event event : events) {
+            book.put(event.getId(), event);
+        }
+        System.out.println("Event book initialized from database.");
     }
 
     private Map<Long, Event> book;

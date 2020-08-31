@@ -3,6 +3,7 @@ package com.ceruti.bov;
 import com.ceruti.bov.model.Event;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -14,25 +15,16 @@ import java.util.Date;
 import java.util.List;
 
 @Component
+@Profile("!test")
 public class EventSyncService {
 
     private EventRepository eventRepository;
     private EventBook eventBook;
-    private MongoTemplate mongoTemplate;
 
     @Autowired
-    public EventSyncService(EventRepository eventRepository, EventBook eventBook, MongoTemplate mongoTemplate) {
+    public EventSyncService(EventRepository eventRepository, EventBook eventBook) {
         this.eventRepository = eventRepository;
         this.eventBook = eventBook;
-        this.mongoTemplate = mongoTemplate;
-
-        Date thirtyMinutesAgo = new DateTime().minusMinutes(30).toDate();
-        List<Event> events = this.mongoTemplate.find(Query.query(Criteria.where("lastUpdated").gte(thirtyMinutesAgo)), Event.class, "event");
-
-        for (Event event : events) {
-            this.eventBook.getBook().put(event.getId(), event);
-        }
-        System.out.println("Event book initialized from database.");
     }
 
     @Scheduled(fixedDelay = 10000)

@@ -24,6 +24,9 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 
 import static com.mongodb.client.model.Filters.exists;
 
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.*;
@@ -31,6 +34,7 @@ import java.util.*;
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class)
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 public class StrategyAnalysisIntegrationTests {
 
@@ -71,7 +75,9 @@ public class StrategyAnalysisIntegrationTests {
 //    @Ignore
     public void testBasicStrategy() throws Exception {
         eventBook.setEnableUpdates(false);
-        List<Event> events = mongoTemplate.findAll(Event.class, "event");
+        Query query = new Query();
+        query.addCriteria(Criteria.where("version").is("v2.0"));
+        List<Event> events = mongoTemplate.find(query, Event.class, "event");
         List<BettingExecutionMetaResults> bettingExecutionMetaResultsBuffer = new ArrayList<>();
         for (Event event : events) {
             event.setSport(EventBook.getEquivalentKey(event.getSport()));
@@ -106,7 +112,10 @@ public class StrategyAnalysisIntegrationTests {
                 }
             }
         }
-        String collectionName = "bettingExecutionMetaResults-BASIC-" + new DateTime().getMillis();
+        if (bettingExecutionMetaResultsBuffer.size() > 0) {
+            analysisRepository.save(bettingExecutionMetaResultsBuffer);
+        }
+        String collectionName = "bettingExecutionMetaResults-BASIC-WITH-TIME-CONTROLS-2" + new DateTime().getMillis();
         mongoTemplate.getCollection("bettingExecutionMetaResults").rename(collectionName);
         SimulationAggregateResult simulationAggregateResult = computeAggregation(collectionName);
         mongoTemplate.save(simulationAggregateResult, "simulationAggregations");
