@@ -11,9 +11,9 @@ public class Application {
         SpringApplication app = new SpringApplication(Application.class);
 
 //         DO NOT COMMIT THIS:
-        app.setDefaultProperties(Collections
-                .singletonMap("server.port", "8081"));
-        System.setProperty("server.port", "8081");
+//        app.setDefaultProperties(Collections
+//                .singletonMap("server.port", "8081"));
+//        System.setProperty("server.port", "8081");
 
         SpringApplication.run(Application.class, args);
     }

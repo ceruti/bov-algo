@@ -69,7 +69,7 @@ public class BettingFacilitatorService {
     private void attemptPlaceAdditionalBet(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession) {
         BettingSession theoreticalBettingSession2x = getTheoreticalBettingSession(outcome, price, bettingSession, 2);
         BettingSession theoreticalBettingSession1x = getTheoreticalBettingSession(outcome, price, bettingSession, 1);
-        if (bettingSession.getMinimumProfit() < 0) {
+        if (bettingSession.getMinimumProfit() < INIT_BET) { // TODO: change this?
             // not making money yet -- we need to bet in the "opposite direction"
             if (theoreticalBettingSession2x.getMinimumProfit() >= bettingSession.getMinimumProfit()) {
                 attemptPlaceBetUpdate(event, market, outcome, price, bettingSession, INIT_BET * 2);
@@ -98,6 +98,7 @@ public class BettingFacilitatorService {
         Bet bet = betPlacingService.placeBet(outcome.getId(), price, riskAmount);
         bettingSession.update(bet, outcome.getId());
         printBettingSessionUpdate(event, market, outcome, price, market.getBettingSession(), bet);
+        template.convertAndSend( "/topics/all", event);
         return market.getBettingSession();
     }
 
@@ -105,6 +106,7 @@ public class BettingFacilitatorService {
         Bet bet = betPlacingService.placeBet(outcome.getId(), price, INIT_BET);
         market.initBettingSession(bet, outcome.getId(), opposingOutcome.getId());
         printBettingSessionUpdate(event, market, outcome, price, market.getBettingSession(), bet);
+        template.convertAndSend( "/topics/all", event);
         return market.getBettingSession();
     }
 

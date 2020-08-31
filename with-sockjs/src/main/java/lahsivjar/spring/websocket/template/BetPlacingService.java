@@ -21,7 +21,8 @@ public class BetPlacingService {
 
     // TODO: force delay between bets?
     public synchronized Bet placeBet(String outcomeId, Price price, double riskAmountInDollars) {
-        return placeBet(outcomeId, price, Math.ceil(riskAmountInDollars * 100));
+        int amountInCents = (int) (Math.ceil(riskAmountInDollars * 100));
+        return placeBet(outcomeId, price, amountInCents);
     }
 
     // TODO: force delay between bets?

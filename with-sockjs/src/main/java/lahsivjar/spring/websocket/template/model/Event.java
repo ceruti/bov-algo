@@ -31,7 +31,7 @@ public class Event {
     private String gameStatus;
     private Date lastUpdated;
     private Date createdAt;
-    private boolean isEndingSoon;
+    private boolean isEndingSoon = false;
 
     @JsonIgnore
     List<String> rawWireMessages = new ArrayList<>();
@@ -42,7 +42,7 @@ public class Event {
 
     }
 
-    private boolean bettingEnabled = false;
+    private boolean bettingEnabled = true; // TODO: flip this back
 
     public void enableBetting() {
         this.bettingEnabled = true;
