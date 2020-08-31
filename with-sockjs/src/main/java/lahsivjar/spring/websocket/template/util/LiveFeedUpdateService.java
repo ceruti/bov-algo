@@ -108,8 +108,10 @@ public class LiveFeedUpdateService {
             }
         }
         updateClock(toUpdate, eventUpdate);
-        if (!toUpdate.isEndingSoon() && SportLogicUtil.isEndingSoon(toUpdate)) {
-            toUpdate.setEndingSoon(true);
+        try { // this one has inconsistent format
+            toUpdate.setEndingSoon(SportLogicUtil.isEndingSoon(toUpdate));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         System.out.println(String.format("[event %d] Updated event: %s", toUpdate.getId(), toUpdate.getDescription()));
         return true;
