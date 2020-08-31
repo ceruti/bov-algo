@@ -1,6 +1,8 @@
 package lahsivjar.spring.websocket.template.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lahsivjar.spring.websocket.template.util.SportLogicUtil;
 import lombok.Data;
 import org.json.JSONObject;
 import org.springframework.data.annotation.Id;
@@ -31,9 +33,7 @@ public class Event {
     private String gameStatus;
     private Date lastUpdated;
     private Date createdAt;
-    private boolean isEndingSoon = false;
     private String version = "v2.0";
-    private boolean startedRecently = false;
 
     @JsonIgnore
     List<String> rawWireMessages = new ArrayList<>();
@@ -42,6 +42,26 @@ public class Event {
 
     public Event() {
 
+    }
+
+    @JsonProperty("isEndingSoon")
+    public boolean isEndingSoon() {
+        try {
+            return SportLogicUtil.isEndingSoon(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @JsonProperty("startedRecently")
+    public boolean startedRecently() {
+        try {
+            return SportLogicUtil.startedRecently(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private boolean bettingEnabled = true; // TODO: flip this back

@@ -220,6 +220,7 @@ public class StrategyAnalysisIntegrationTests {
         String lastFavoriteOutcomeId = outcomeAndPriceTicks.get(0).outcome.getId();
         for (int i = 0; i < outcomeAndPriceTicks.size(); i++) {
             OutcomeAndPriceTick currentTick = outcomeAndPriceTicks.get(i);
+            updateClockAndScore(event, currentTick);
             initialUnderdogSet = analyzeTick(winningOutcomeId, bettingExecutionMetaResults, initialUnderdogSet, lastFavoriteOutcomeId, currentTick);
             Outcome opposingOutcome = currentTick.outcome.getId().equals(outcome1.getId()) ? outcome2 : outcome1;
             bettingFacilitatorService.updateBettingSession(event, market, currentTick.outcome, opposingOutcome, currentTick.price, Strategy.BASIC);
@@ -232,6 +233,20 @@ public class StrategyAnalysisIntegrationTests {
             performPostAnalysis(market, bettingExecutionMetaResults, outcomeAndPriceTicks);
         }
         return bettingExecutionMetaResults;
+    }
+
+    private void updateClockAndScore(Event event, OutcomeAndPriceTick currentTick) {
+        if (currentTick.price.getClockAtTimeOfPrice() != null) {
+            event.setClock(currentTick.price.getClockAtTimeOfPrice());
+        }
+        if (currentTick.price.getHomeScoreAtTimeOfPrice() != null) {
+            event.setHomeScore(currentTick.price.getHomeScoreAtTimeOfPrice());
+        }
+        if (currentTick.price.getVisitorScoreAtTimeOfPrice() != null) {
+            event.setVisitorScore((currentTick.price.getVisitorScoreAtTimeOfPrice()));
+        }
+        event.setCurrentPeriodHomeScore(currentTick.price.getCurrentPeriodHomeScoreAtTimeOfPrice());
+        event.setCurrentPeriodVisitorScore(currentTick.price.getCurrentPeriodVisitorScoreAtTimeOfPrice());
     }
 
     private void performPostAnalysis(Market market, BettingExecutionMetaResults bettingExecutionMetaResults, List<OutcomeAndPriceTick> outcomeAndPriceTicks) {

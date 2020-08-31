@@ -108,17 +108,6 @@ public class LiveFeedUpdateService {
             }
         }
         updateClock(toUpdate, eventUpdate);
-        try { // this one has inconsistent format
-            boolean endingSoon = SportLogicUtil.isEndingSoon(toUpdate);
-            toUpdate.setEndingSoon(endingSoon);
-            if (!endingSoon) {
-                toUpdate.setStartedRecently(SportLogicUtil.startedRecently(toUpdate));
-            } else {
-                toUpdate.setStartedRecently(false);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         System.out.println(String.format("[event %d] Updated event: %s", toUpdate.getId(), toUpdate.getDescription()));
         return true;
     }
