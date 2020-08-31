@@ -1,21 +1,21 @@
 package lahsivjar.spring.websocket.template;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lahsivjar.spring.websocket.template.model.Event;
 import org.joda.time.DateTime;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class EventBook {
+
+    private static final Set<String> initiateAutoBettingBlacklist = new HashSet<>(Arrays.asList(
+            "TENNIS"
+    )); // we won't automatically initiate auto-betting on these sports... but once a manual bet is placed, auto betting is allowed
+    // We do this because we don't have an automated solution for distinguishing between men and women's tennis.
 
     private NullAwareBeanUtilsBean nullAwareBeanUtilsBean;
     private SimpMessagingTemplate simpMessagingTemplate;
@@ -33,6 +33,10 @@ public class EventBook {
 
     public Map<Long, Event> getBook() {
         return book;
+    }
+
+    public boolean isOnInitiateBettingSessionBlacklist(Event event) {
+        return initiateAutoBettingBlacklist.contains(EventBook.getEquivalentKey(event.getSport()));
     }
 
     public Map<String, Map<Long, Event>> getLiveEvents() {

@@ -157,6 +157,8 @@ public class SportLogicUtil {
 
     private static int setsToWinTennisMatch(Event event) {
         // mens is best 3 of 5, womens is best 2 of 3
+        // however, the API always returns that the number of periods in the game is 3 (men or women)
+        // therefore, tennis is F'd
         return event.getClock().getNumberOfPeriods();
     }
 
