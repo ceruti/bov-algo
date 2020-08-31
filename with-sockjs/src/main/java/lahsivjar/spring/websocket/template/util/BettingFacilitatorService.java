@@ -83,7 +83,7 @@ public class BettingFacilitatorService {
        }
     }
 
-    public BettingSession attemptPlaceCustomBet(Long eventId, String marketId, String outcomeId, String opposingOutcomeId, Price price, int amountInCents) {
+    public Market attemptPlaceCustomBet(Long eventId, String marketId, String outcomeId, String opposingOutcomeId, Price price, int amountInCents) {
         Bet bet = betPlacingService.placeBet(outcomeId, price, amountInCents);
         Market market = eventBook.getBook().get(eventId).getMarkets().get(marketId);
         if (market.getBettingSession() == null) {
@@ -91,7 +91,7 @@ public class BettingFacilitatorService {
         } else {
             market.updateBettingSession(bet, outcomeId);
         }
-        return market.getBettingSession();
+        return market;
     }
 
     private BettingSession attemptPlaceBetUpdate(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession, double riskAmount) {

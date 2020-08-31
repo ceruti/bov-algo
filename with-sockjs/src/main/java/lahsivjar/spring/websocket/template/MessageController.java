@@ -57,7 +57,7 @@ public class MessageController {
     }
 
     @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/bet", method = RequestMethod.PUT)
-    public BettingSession placeCustomBet(@PathVariable(value="eventId") Long eventId,
+    public Market placeCustomBet(@PathVariable(value="eventId") Long eventId,
                                              @PathVariable(value="marketId") String marketId,
                                              @PathVariable(value="outcomeId") String outcomeId,
                                              @RequestParam(required = true, value = "amountInCents") int amountInCents,
