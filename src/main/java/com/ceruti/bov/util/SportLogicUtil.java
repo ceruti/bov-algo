@@ -49,9 +49,9 @@ public class SportLogicUtil {
                 return isFootballEventStartedRecently(event);
             case "VOLLEYBALL":
                 return isVolleyBallEventStartedRecently(event);
-            default:
             case "BASEBALL":
-                return isFinalPeriod(event);
+            default:
+                return isFirstPeriod(event);
         }
     }
 
@@ -142,6 +142,10 @@ public class SportLogicUtil {
         return event.getClock().getPeriodNumber() == event.getClock().getNumberOfPeriods();
     }
 
+    private static boolean isFirstPeriod(Event event) {
+        return event.getClock().getPeriodNumber() == 1;
+    }
+
     private static boolean isSoccerEventEndingSoon(Event event) {
         return false; // TODO: implement
     }
@@ -178,6 +182,9 @@ public class SportLogicUtil {
     }
 
     private static boolean noPeriodsWonYet(Event event) {
+        if (event.getHomeScore() == null|| event.getVisitorScore() == null) {
+            return true;
+        }
         int homePeriodsWon = Integer.parseInt(event.getHomeScore());
         int visitorPeriodsWon = Integer.parseInt(event.getVisitorScore());
         return homePeriodsWon <= 0 && visitorPeriodsWon <= 0 && event.getClock().getPeriodNumber() <=1;
