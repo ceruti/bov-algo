@@ -1,6 +1,6 @@
 import com.ceruti.bov.model.Event;
 import com.ceruti.bov.util.EventParseUtil;
-import com.ceruti.bov.util.LiveFeedUpdateService;
+import com.ceruti.bov.LiveFeedUpdateService;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

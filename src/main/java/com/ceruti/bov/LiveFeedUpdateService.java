@@ -1,5 +1,6 @@
-package com.ceruti.bov.util;
+package com.ceruti.bov;
 
+import com.ceruti.bov.BettingFacilitatorService;
 import com.ceruti.bov.model.*;
 import com.ceruti.bov.EventBook;
 import lombok.Data;

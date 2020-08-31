@@ -1,7 +1,6 @@
 package com.ceruti.bov;
 
 import com.ceruti.bov.model.Event;
-import com.ceruti.bov.util.LiveFeedUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;

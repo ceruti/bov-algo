@@ -8,7 +8,7 @@ import com.mongodb.client.MongoDatabase;
 import com.ceruti.bov.Application;
 import com.ceruti.bov.BettingExecutionMetaResultsRepository;
 import com.ceruti.bov.EventBook;
-import com.ceruti.bov.util.BettingFacilitatorService;
+import com.ceruti.bov.BettingFacilitatorService;
 import lombok.AllArgsConstructor;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.bson.Document;

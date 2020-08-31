@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.ceruti.bov.model.*;
-import com.ceruti.bov.util.BettingFacilitatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;

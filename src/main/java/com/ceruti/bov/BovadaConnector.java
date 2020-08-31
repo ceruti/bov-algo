@@ -28,8 +28,6 @@ public class BovadaConnector {
 
     private SimpMessagingTemplate template;
 
-    private ChatHistoryDao chatHistoryDao;
-
     private EventInitializerService eventInitializerService;
 
     private LiveOddsUpdateService liveOddsUpdateService;
@@ -44,12 +42,10 @@ public class BovadaConnector {
 
     @Autowired
     public BovadaConnector(SimpMessagingTemplate template,
-                           ChatHistoryDao chatHistoryDao,
                            EventInitializerService eventInitializerService,
                            LiveOddsUpdateService liveOddsUpdateService,
                            EventBook eventBook) throws InterruptedException {
         this.template = template;
-        this.chatHistoryDao = chatHistoryDao;
         this.eventInitializerService = eventInitializerService;
         this.liveOddsUpdateService = liveOddsUpdateService;
         this.eventBook = eventBook;
@@ -58,10 +54,6 @@ public class BovadaConnector {
         loggingprefs.enable(LogType.PERFORMANCE, Level.ALL);
 
         DesiredCapabilities cap = new DesiredCapabilities().chrome();
-//        cap.setCapability(CapabilityType.LOGGING_PREFS, loggingprefs);
-//        ChromeOptions options = new ChromeOptions();
-//        LoggingPreferences logPrefs = new LoggingPreferences();
-//        logPrefs.enable( LogType.PERFORMANCE, Level.ALL );
         cap.setCapability( "goog:loggingPrefs", loggingprefs );
 
         driver = new ChromeDriver(cap);
@@ -100,22 +92,14 @@ public class BovadaConnector {
                     eventInitializerService.syncEventsAsync(response.getString("url"));
                 }
                 else if(method.equalsIgnoreCase("Network.webSocketFrameSent")){
-//                    System.out.println("Message Sent: " + payload);
+                    // do nothing for now
                 }else if(method.equalsIgnoreCase("Network.webSocketFrameReceived")){
                     String payload = response.getString("payloadData");
                     liveOddsUpdateService.updateEventBook(payload);
-//                    System.out.println("Message Received: " + payload);
-//                    this.template.convertAndSend("/topic/all", payload);
-                    Map<String, String> _message = new HashMap<>();
-                    _message.put("author", "bov-boy");
-                    _message.put("authorId", "GZ0Ut7zC4mKHfeEmQx0ZnloZxIH8J4Lh");
-                    _message.put("message", payload);
-                    _message.put("timestamp", Long.toString(System.currentTimeMillis()));
-//                    chatHistoryDao.save(message); TODO: uncomment this?
                     lastMessagedReceived = new DateTime();
                 }
             } catch (Exception e) {
-//                e.printStackTrace();
+                e.printStackTrace();
             }
         });
     }
