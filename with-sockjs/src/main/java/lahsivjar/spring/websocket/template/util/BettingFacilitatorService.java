@@ -40,7 +40,7 @@ public class BettingFacilitatorService {
         if (bettingSession != null) {
             printBettingLineUpdate(event, outcome, price);
         }
-        if (bettingSession == null && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
+        if (bettingSession == null && event.isStartedRecently() && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
             attemptInitBettingSession(event, market, outcome, opposingOutcome, price);
         }
         else if (bettingSession != null && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {

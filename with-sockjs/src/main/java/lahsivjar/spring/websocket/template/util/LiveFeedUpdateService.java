@@ -109,7 +109,13 @@ public class LiveFeedUpdateService {
         }
         updateClock(toUpdate, eventUpdate);
         try { // this one has inconsistent format
-            toUpdate.setEndingSoon(SportLogicUtil.isEndingSoon(toUpdate));
+            boolean endingSoon = SportLogicUtil.isEndingSoon(toUpdate);
+            toUpdate.setEndingSoon(endingSoon);
+            if (!endingSoon) {
+                toUpdate.setStartedRecently(SportLogicUtil.startedRecently(toUpdate));
+            } else {
+                toUpdate.setStartedRecently(false);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
