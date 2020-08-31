@@ -122,6 +122,10 @@ public class SportLogicUtil {
     }
 
     private static boolean isPeriodScoreBasedGameEndingSoon(Event event, int periodScorePointThreshold, int primaryScoreToWinMatch) {
+        if (event.getHomeScore() == null || event.getVisitorScore() == null) {
+            System.err.println("Scores not set for event: "+event.getId());
+            return false;
+        }
         int homeGamesWon = Integer.parseInt(event.getHomeScore());
         int homePointsWonThisGame = event.getCurrentPeriodHomeScore();
         int visitorGamesWon = Integer.parseInt(event.getVisitorScore());

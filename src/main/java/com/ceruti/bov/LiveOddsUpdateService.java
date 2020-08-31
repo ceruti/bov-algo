@@ -6,6 +6,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Component
 // TODO: combine this with liveFeedUpdateService... no reason to split these out
@@ -14,6 +16,7 @@ public class LiveOddsUpdateService {
     private EventBook eventBook;
     private LiveFeedUpdateService liveFeedUpdateService;
     private SimpMessagingTemplate simpMessagingTemplate;
+    private ExecutorService executorService;
 
     @Autowired
     public LiveOddsUpdateService(EventBook eventBook,
@@ -22,6 +25,13 @@ public class LiveOddsUpdateService {
         this.eventBook = eventBook;
         this.liveFeedUpdateService = liveFeedUpdateService;
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.executorService = Executors.newFixedThreadPool(25);
+    }
+
+    public void updateEventBookAsync(String wireMessage) {
+        executorService.submit(() -> {
+            updateEventBook(wireMessage);
+        });
     }
 
     public void updateEventBook(String wireMessage) {

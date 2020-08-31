@@ -36,7 +36,7 @@ public class EventSyncService {
     }
 
     @Scheduled(fixedDelay = 10000)
-    public void sync() {
+    public synchronized void sync() {
         if (!eventBook.isEnableUpdates()) {
             return;
         }

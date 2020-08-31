@@ -95,11 +95,11 @@ public class BovadaConnector {
                     // do nothing for now
                 }else if(method.equalsIgnoreCase("Network.webSocketFrameReceived")){
                     String payload = response.getString("payloadData");
-                    liveOddsUpdateService.updateEventBook(payload);
+                    liveOddsUpdateService.updateEventBookAsync(payload);
                     lastMessagedReceived = new DateTime();
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         });
     }
