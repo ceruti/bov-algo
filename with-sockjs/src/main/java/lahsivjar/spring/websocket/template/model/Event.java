@@ -32,6 +32,7 @@ public class Event {
     private Date lastUpdated;
     private Date createdAt;
     private boolean isEndingSoon = false;
+    private String version = "v2.0";
 
     @JsonIgnore
     List<String> rawWireMessages = new ArrayList<>();
