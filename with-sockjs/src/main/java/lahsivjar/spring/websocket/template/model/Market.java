@@ -102,4 +102,22 @@ public class Market {
         return null;
     }
 
+    @JsonProperty("moreProfitableOutcomeId")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String getMoreProfitableOutcomeId() {
+        if (bettingSession != null) {
+            return bettingSession.getMoreProfitableOutcomeId();
+        }
+        return null;
+    }
+
+    @JsonProperty("lessProfitableOutcomeId")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String getLessProfitableOutcomeId() {
+        if (bettingSession != null) {
+            return bettingSession.getLessProfitableOutcomeId();
+        }
+        return null;
+    }
+
 }
