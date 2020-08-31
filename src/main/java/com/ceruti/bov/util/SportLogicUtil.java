@@ -167,6 +167,9 @@ public class SportLogicUtil {
         // mens is best 3 of 5, womens is best 2 of 3
         // however, the API always returns that the number of periods in the game is 3 (men or women)
         // therefore, tennis is F'd
+        if (event.getClock() == null) {
+            return 3;
+        }
         return event.getClock().getNumberOfPeriods();
     }
 

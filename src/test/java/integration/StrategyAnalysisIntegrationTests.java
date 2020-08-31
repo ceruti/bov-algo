@@ -38,6 +38,8 @@ import java.util.*;
 @AutoConfigureMockMvc
 public class StrategyAnalysisIntegrationTests {
 
+    public static final String SIMULATION_PREFIX = "BASIC-WITH-TIME-CONTROLS-ALLOW_TENNIS";
+
     public StrategyAnalysisIntegrationTests() {}
 
     @Autowired
@@ -115,7 +117,7 @@ public class StrategyAnalysisIntegrationTests {
         if (bettingExecutionMetaResultsBuffer.size() > 0) {
             analysisRepository.save(bettingExecutionMetaResultsBuffer);
         }
-        String collectionName = "bettingExecutionMetaResults-BASIC-WITH-TIME-CONTROLS-2" + new DateTime().getMillis();
+        String collectionName = "bettingExecutionMetaResults-" + SIMULATION_PREFIX + new DateTime().getMillis();
         mongoTemplate.getCollection("bettingExecutionMetaResults").rename(collectionName);
         SimulationAggregateResult simulationAggregateResult = computeAggregation(collectionName);
         mongoTemplate.save(simulationAggregateResult, "simulationAggregations");

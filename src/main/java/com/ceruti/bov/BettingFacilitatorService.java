@@ -49,21 +49,21 @@ public class BettingFacilitatorService {
     }
 
     private void printBettingLineUpdate(Event event, Outcome outcome, Price price) {
-        System.out.println(String.format(
-                "~~~~~~~~~~~~~~~~~~~~~\n"+
-                "NEW LINE FOR ACTIVE BETTING SESSION:\n"+
-                "\teventId: %d\n" +
-                "\teventDescription: %s\n" +
-                "\toutcome: %s\n"+
-                "\tmoneyLine: %s\n" +
-                "\ttime: %s\n"+
-                "~~~~~~~~~~~~~~~~~~~~~\n",
-                event.getId(),
-                event.getDescription(),
-                outcome.getDescription(),
-                printAmericanPrice(price),
-                price.getCreated().toString()
-        ));
+//        System.out.println(String.format(
+//                "~~~~~~~~~~~~~~~~~~~~~\n"+
+//                "NEW LINE FOR ACTIVE BETTING SESSION:\n"+
+//                "\teventId: %d\n" +
+//                "\teventDescription: %s\n" +
+//                "\toutcome: %s\n"+
+//                "\tmoneyLine: %s\n" +
+//                "\ttime: %s\n"+
+//                "~~~~~~~~~~~~~~~~~~~~~\n",
+//                event.getId(),
+//                event.getDescription(),
+//                outcome.getDescription(),
+//                printAmericanPrice(price),
+//                price.getCreated().toString()
+//        ));
     }
 
     private void attemptPlaceAdditionalBet(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession) {
@@ -139,6 +139,7 @@ public class BettingFacilitatorService {
                         "TOTALS:\n" +
                         "\tminimumProfit (%s wins): %.2f\n" +
                         "\tmaximumProfit (%s wins): %.2f\n" +
+                        "\texpectedProfit: %.2f\n" +
                         "############################################",
                 event.getId(),
                 event.getDescription(),
@@ -148,7 +149,8 @@ public class BettingFacilitatorService {
                 lessProfitableOutcomeDescription,
                 bettingSession.getMinimumProfit(),
                 moreProfitableOutcomeDescription,
-                bettingSession.getMaximumProfit());
+                bettingSession.getMaximumProfit(),
+                market.getExpectedProfit());
         System.out.println(betPlaced);
 //        this.template.convertAndSend("/topic/all", betPlaced);
     }
