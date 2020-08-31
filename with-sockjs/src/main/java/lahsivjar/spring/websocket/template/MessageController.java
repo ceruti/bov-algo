@@ -3,10 +3,8 @@ package lahsivjar.spring.websocket.template;
 import java.util.List;
 import java.util.Map;
 
-import lahsivjar.spring.websocket.template.model.Event;
-import lahsivjar.spring.websocket.template.model.SimulationAggregateResult;
-import lahsivjar.spring.websocket.template.model.SimulationAggregateResultElement;
-import lahsivjar.spring.websocket.template.model.SimulationPage;
+import lahsivjar.spring.websocket.template.model.*;
+import lahsivjar.spring.websocket.template.util.BettingFacilitatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -16,13 +14,15 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class MessageController {
 
+    private BettingFacilitatorService bettingFacilitatorService;
     private EventBook eventBook;
     private SimulationService simulationService;
 
     @Autowired
-    public MessageController(EventBook eventBook, SimulationService simulationService) {
+    public MessageController(EventBook eventBook, SimulationService simulationService, BettingFacilitatorService bettingFacilitatorService) {
         this.simulationService = simulationService;
         this.eventBook = eventBook;
+        this.bettingFacilitatorService = bettingFacilitatorService;
     }
 
     /*
@@ -54,6 +54,16 @@ public class MessageController {
     @RequestMapping(value = "/events/{eventId}/disable", method = RequestMethod.PUT)
     public void disableEventForBetting(@PathVariable(value="eventId") Long eventId) {
         this.eventBook.disableEventForBetting(eventId);
+    }
+
+    @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/bet", method = RequestMethod.PUT)
+    public BettingSession placeCustomBet(@PathVariable(value="eventId") Long eventId,
+                                             @PathVariable(value="marketId") String marketId,
+                                             @PathVariable(value="outcomeId") String outcomeId,
+                                             @RequestParam(required = true, value = "amountInCents") int amountInCents,
+                                             @RequestParam(required = true, value = "opposingOutcomeId") String opposingOutcomeId,
+                                             @RequestBody Price price)  {
+        return bettingFacilitatorService.attemptPlaceCustomBet(eventId, marketId, outcomeId, opposingOutcomeId, price, amountInCents);
     }
 
     @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/enable", method = RequestMethod.PUT)

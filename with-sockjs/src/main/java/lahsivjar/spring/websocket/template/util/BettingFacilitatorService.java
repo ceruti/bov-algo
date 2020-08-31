@@ -1,6 +1,7 @@
 package lahsivjar.spring.websocket.template.util;
 
 import lahsivjar.spring.websocket.template.BetPlacingService;
+import lahsivjar.spring.websocket.template.EventBook;
 import lahsivjar.spring.websocket.template.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -16,6 +17,8 @@ public class BettingFacilitatorService {
     public static final int LOWER_BOUND_MONEYLINE_ENTRY = 100;
     public static final int UPPERBOUND_MONEYLINE_ENTRY = 200;
 
+    private EventBook eventBook;
+
     private BetPlacingService betPlacingService;
 
     private SimpMessagingTemplate template;
@@ -23,9 +26,10 @@ public class BettingFacilitatorService {
     private ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     @Autowired
-    public BettingFacilitatorService(BetPlacingService betPlacingService, SimpMessagingTemplate simpMessagingTemplate) {
+    public BettingFacilitatorService(BetPlacingService betPlacingService, SimpMessagingTemplate simpMessagingTemplate, EventBook eventBook) {
         this.betPlacingService = betPlacingService;
         this.template = simpMessagingTemplate;
+        this.eventBook = eventBook;
     }
 
     private void updateBettingSessionBasic(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price) {
@@ -65,8 +69,8 @@ public class BettingFacilitatorService {
     private void attemptPlaceAdditionalBet(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession) {
         BettingSession theoreticalBettingSession2x = getTheoreticalBettingSession(outcome, price, bettingSession, 2);
         BettingSession theoreticalBettingSession1x = getTheoreticalBettingSession(outcome, price, bettingSession, 1);
-        if (bettingSession.getMinimumProfit() < INIT_BET) {
-            // not making money yet -- we need to bet in the opposite direction
+        if (bettingSession.getMinimumProfit() < 0) {
+            // not making money yet -- we need to bet in the "opposite direction"
             if (theoreticalBettingSession2x.getMinimumProfit() >= bettingSession.getMinimumProfit()) {
                 attemptPlaceBetUpdate(event, market, outcome, price, bettingSession, INIT_BET * 2);
             } else if (theoreticalBettingSession1x.getMinimumProfit() >= bettingSession.getMinimumProfit()) {
@@ -79,20 +83,29 @@ public class BettingFacilitatorService {
        }
     }
 
-    private void attemptPlaceBetUpdate(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession, double riskAmount) {
-        Bet bet = betPlacingService.placeBet(outcome, price, riskAmount);
-        if (bet.isPlaced()) {
-            bettingSession.update(bet, outcome.getId());
-            printBettingSessionUpdate(event, market, outcome, price, market.getBettingSession(), bet);
+    public BettingSession attemptPlaceCustomBet(Long eventId, String marketId, String outcomeId, String opposingOutcomeId, Price price, int amountInCents) {
+        Bet bet = betPlacingService.placeBet(outcomeId, price, amountInCents);
+        Market market = eventBook.getBook().get(eventId).getMarkets().get(marketId);
+        if (market.getBettingSession() == null) {
+            market.initBettingSession(bet, outcomeId, opposingOutcomeId);
+        } else {
+            market.updateBettingSession(bet, outcomeId);
         }
+        return market.getBettingSession();
     }
 
-    private void attemptInitBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price) {
-        Bet bet = betPlacingService.placeBet(outcome, price, INIT_BET);
-        if (bet.isPlaced()) {
-            market.initBettingSession(bet, outcome.getId(), opposingOutcome.getId());
-            printBettingSessionUpdate(event, market, outcome, price, market.getBettingSession(), bet);
-        }
+    private BettingSession attemptPlaceBetUpdate(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession, double riskAmount) {
+        Bet bet = betPlacingService.placeBet(outcome.getId(), price, riskAmount);
+        bettingSession.update(bet, outcome.getId());
+        printBettingSessionUpdate(event, market, outcome, price, market.getBettingSession(), bet);
+        return market.getBettingSession();
+    }
+
+    private BettingSession attemptInitBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price) {
+        Bet bet = betPlacingService.placeBet(outcome.getId(), price, INIT_BET);
+        market.initBettingSession(bet, outcome.getId(), opposingOutcome.getId());
+        printBettingSessionUpdate(event, market, outcome, price, market.getBettingSession(), bet);
+        return market.getBettingSession();
     }
 
     private BettingSession getTheoreticalBettingSession(Outcome outcome, Price price, BettingSession bettingSession, int factor) {
