@@ -1,14 +1,14 @@
 package integration;
 
+import com.ceruti.bov.*;
 import com.ceruti.bov.model.*;
+import com.ceruti.bov.util.EventParseUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.ceruti.bov.Application;
-import com.ceruti.bov.BettingExecutionMetaResultsRepository;
-import com.ceruti.bov.EventBook;
-import com.ceruti.bov.BettingFacilitatorService;
 import lombok.AllArgsConstructor;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.bson.Document;
@@ -20,6 +20,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 import static com.mongodb.client.model.Filters.exists;
@@ -56,6 +57,12 @@ public class StrategyAnalysisIntegrationTests {
 
     @Autowired
     BettingExecutionMetaResultsRepository analysisRepository;
+
+    @Autowired
+    LiveFeedUpdateService liveFeedUpdateService;
+
+    @Autowired
+    MongoOperations mongoOperations;
 
     @Test
 //    @Ignore
@@ -164,6 +171,40 @@ public class StrategyAnalysisIntegrationTests {
                 "}";
         JSONObject jsonObject = new JSONObject(json);
         toAggregationResultElement(jsonObject, true);
+    }
+
+//    @Test
+    public void wireMessageReplayTest() throws JsonProcessingException, JSONException {
+        Long eventId = 7651192L; // TODO: change this as needed for debugging
+        Query findEvent = new Query();
+        findEvent.addCriteria(Criteria.where("_id").is(eventId));
+        Event actualDbEvent = this.mongoTemplate
+                .findOne(findEvent, Event.class, "event");
+        Event replaySimulationEvent = new Event();
+        replaySimulationEvent.setId(actualDbEvent.getId());
+        replaySimulationEvent.setCompetitionId(actualDbEvent.getCompetitionId());
+        replaySimulationEvent.setDescription(actualDbEvent.getDescription());
+        replaySimulationEvent.setCompetitors(actualDbEvent.getCompetitors());
+        replaySimulationEvent.setSport(actualDbEvent.getSport());
+        replaySimulationEvent.setLive(true);
+        Map<String, Market> markets = new HashMap<>();
+        for (String marketId : actualDbEvent.getMarkets().keySet()) {
+            // need to be careful to clear in-session values
+            Market actualDBMarket = actualDbEvent.getMarkets().get(marketId);
+            actualDBMarket.setBettingSession(null);
+            for (String outcomeId : actualDBMarket.getOutcomes().keySet()) {
+                Outcome outcome = actualDBMarket.getOutcomes().get(outcomeId);
+                outcome.setPrice(null);
+                outcome.setPreviousPrices(null);
+            }
+            markets.put(actualDBMarket.getId(), actualDBMarket);
+        }
+        replaySimulationEvent.setMarkets(markets);
+        this.eventBook.getBook().put(eventId, replaySimulationEvent);
+        for (String rawWireMessage : actualDbEvent.getRawWireMessages()) {
+            liveFeedUpdateService.updateEvent(replaySimulationEvent, rawWireMessage);
+        }
+        System.out.print("");
     }
 
     private static SimulationAggregateResultElement toAggregationResultElement(JSONObject jsonObject, boolean isBySport) throws JSONException {

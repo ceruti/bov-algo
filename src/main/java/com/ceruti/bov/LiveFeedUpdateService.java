@@ -63,7 +63,7 @@ public class LiveFeedUpdateService {
                             && wireMessage.getOutcomeId() != null
                             && wireMessage.getAmericanOdds() != null
                             && market.getOutcomes().containsKey(wireMessage.getOutcomeId())) {
-                        updated = updateOutcome(wireMessage, market, toUpdate.getId(), toUpdate);
+                        updated = updateOutcome((WireMessageType2) wireMessage, market, toUpdate.getId(), toUpdate);
                     }
                 }
             }
@@ -186,22 +186,24 @@ public class LiveFeedUpdateService {
         }
     }
 
-    private boolean updateOutcome(WireMessage wireMessage, Market market, long eventId, Event toUpdate) {
+    private boolean updateOutcome(WireMessageType2 wireMessage, Market market, long eventId, Event toUpdate) {
         Outcome outcomeToUpdate = market.getOutcomes().get(wireMessage.getOutcomeId());
         wireMessage.setDescription(outcomeToUpdate.getDescription());
         Price previousPrice = outcomeToUpdate.getPrice();
-        if (previousPrice.getAmerican() != wireMessage.getAmericanOdds().intValue()) {
+        Price newPrice = new Price(wireMessage.getAmericanOdds(), wireMessage.getNewPriceId(), toUpdate.getClock(), toUpdate.getHomeScore(), toUpdate.getVisitorScore(), toUpdate.getCurrentPeriodHomeScore(), toUpdate.getCurrentPeriodVisitorScore());
+        if (previousPrice == null || previousPrice.getAmerican() != wireMessage.getAmericanOdds().intValue()) {
             List<Price> previousPrices = outcomeToUpdate.getPreviousPrices();
             if (previousPrices == null) {
                 previousPrices = new ArrayList<>();
             }
-            Price newPrice = new Price(wireMessage.getAmericanOdds(), previousPrice.getId(), toUpdate.getClock(), toUpdate.getHomeScore(), toUpdate.getVisitorScore(), toUpdate.getCurrentPeriodHomeScore(), toUpdate.getCurrentPeriodVisitorScore());
-            previousPrices.add(previousPrice);
-            outcomeToUpdate.setPreviousPrices(previousPrices);
+            if (previousPrice != null) {
+                previousPrices.add(previousPrice);
+                outcomeToUpdate.setPreviousPrices(previousPrices);
+            }
             outcomeToUpdate.setPrice(newPrice);
             System.out.println(String.format("[event %d] Updated odds: %s/%s -> %s %d",
                     eventId,
-                    eventBook.getBook().get(eventId).getDescription(),
+                    toUpdate.getDescription(),
                     market.getDescription(),
                     wireMessage.getDescription(),
                     wireMessage.getAmericanOdds()));
@@ -219,7 +221,7 @@ public class LiveFeedUpdateService {
                     .filter(otherOutcome -> !otherOutcome.getId().equals(outcome.getId()))
                     .findFirst()
                     .get();
-            bettingFacilitatorService.updateBettingSessionAsync(
+            bettingFacilitatorService.updateBettingSession( // TODO: switch back to async? --> don't see a reason to do async, because we are not blocking the bovadaConnector thread
                     event,
                     market,
                     outcome,
@@ -242,6 +244,7 @@ public class LiveFeedUpdateService {
         void setDescription(String newDescription);
 
         String getType();
+
     }
 
     @Data
@@ -277,6 +280,11 @@ public class LiveFeedUpdateService {
         public void setDescription(String description) {
             this.eventDescription = description;
         }
+
+        public String getNewPriceId() {
+            return super.oddsSlice.getJSONObject("price").getString("id");
+        }
+
     }
 
     @Data

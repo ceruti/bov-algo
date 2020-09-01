@@ -33,18 +33,20 @@ public class BettingFacilitatorService {
     }
 
     private void updateBettingSessionBasic(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price) {
-        if (event.hasAnotherBettingSession(market.getId())) {
-            return;
-        }
-        BettingSession bettingSession = market.getBettingSession();
-        if (bettingSession != null) {
-            printBettingLineUpdate(event, outcome, price);
-        }
-        if (bettingSession == null && event.startedRecently() && !eventBook.isOnInitiateBettingSessionBlacklist(event) && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
-            attemptInitBettingSession(event, market, outcome, opposingOutcome, price);
-        }
-        else if (bettingSession != null && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
-            attemptPlaceAdditionalBet(event, market, outcome, price, bettingSession);
+        synchronized (market) { // don't want multiple threads making bets on the same thing
+            if (event.hasAnotherBettingSession(market.getId())) {
+                return;
+            }
+            BettingSession bettingSession = market.getBettingSession();
+            if (bettingSession != null) {
+                printBettingLineUpdate(event, outcome, price);
+            }
+            if (bettingSession == null && event.startedRecently() && !eventBook.isOnInitiateBettingSessionBlacklist(event) && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
+                attemptInitBettingSession(event, market, outcome, opposingOutcome, price);
+            }
+            else if (bettingSession != null && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
+                attemptPlaceAdditionalBet(event, market, outcome, price, bettingSession);
+            }
         }
     }
 
