@@ -78,7 +78,7 @@ public class BovadaConnector {
             return;
         }
         if (lastMessagedReceived.isBefore(new DateTime().minusSeconds(20))
-            && lastRefresh.isBefore(new DateTime().minusMinutes(1))) {
+            && lastRefresh.isBefore(new DateTime().minusSeconds(20))) {
             refresh();
         }
         LogEntries logEntries = driver.manage().logs().get(LogType.PERFORMANCE);

@@ -88,8 +88,12 @@ public class LiveFeedUpdateService {
                 updateTennisScore(eventUpdate, toUpdate);
             } else {
                 JSONObject latestScore = eventUpdate.getJSONObject("latestScore");
-                toUpdate.setVisitorScore(latestScore.getString("visitor"));
-                toUpdate.setHomeScore(latestScore.getString("home"));
+                if (latestScore.getString("visitor") != null) {
+                    toUpdate.setVisitorScore(latestScore.getString("visitor"));
+                }
+                if (latestScore.getString("home") != null) {
+                    toUpdate.setHomeScore(latestScore.getString("home"));
+                }
             }
         }
         if (eventUpdate.has("currentPeriodScore")) {
