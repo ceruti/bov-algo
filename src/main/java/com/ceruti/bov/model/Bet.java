@@ -25,7 +25,7 @@ public class Bet {
     }
 
     public Bet(Price price, double riskAmount) {
-        this.price = price;
+        this.price = price.clone();
         this.riskAmount = riskAmount;
         this.status = Status.PLACING;
         this.winAmount = getWinAmount(price, riskAmount);
