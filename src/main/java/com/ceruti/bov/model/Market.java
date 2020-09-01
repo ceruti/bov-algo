@@ -32,6 +32,16 @@ public class Market {
     }
 
     public static double getProbability(Outcome outcome, Outcome opposingOutcome) {
+        if (outcome.getPrice() == null && opposingOutcome.getPrice() == null) {
+            return 0;
+        }
+        if (outcome.getPrice() != null && opposingOutcome.getPrice() == null) {
+            return toFractionalOdds(outcome.getPrice().getAmerican());
+        }
+        if (outcome.getPrice() == null && opposingOutcome.getPrice() != null) {
+            return 1 - toFractionalOdds(opposingOutcome.getPrice().getAmerican());
+        }
+
         // we average the two lines since bookies undervalue long shots and over estimate favorites
         double probabilityByThisOutcomeOdds = toFractionalOdds(outcome.getPrice().getAmerican());
         double probabilityByOtherOutcomeOdds = 1 - toFractionalOdds(opposingOutcome.getPrice().getAmerican());
