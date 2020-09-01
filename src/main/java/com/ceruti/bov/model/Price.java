@@ -39,7 +39,9 @@ public class Price {
         result.american = this.american;
         result.id = this.id;
         result.created = this.created;
-        result.clockAtTimeOfPrice = this.clockAtTimeOfPrice.clone();
+        if (this.clockAtTimeOfPrice != null) {
+            result.clockAtTimeOfPrice = this.clockAtTimeOfPrice.clone();
+        }
         result.homeScoreAtTimeOfPrice = this.homeScoreAtTimeOfPrice;
         result.visitorScoreAtTimeOfPrice = this.visitorScoreAtTimeOfPrice;
         result.currentPeriodHomeScoreAtTimeOfPrice = this.currentPeriodHomeScoreAtTimeOfPrice;
