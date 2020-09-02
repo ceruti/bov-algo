@@ -59,7 +59,7 @@ public class BetPlacingServiceLive implements BetPlacingService {
         bet.setVendorKey(response.getBody().getKey());
         for (int i = 0; i < MAX_TRIES; i++) {
             BetSlip betSlip = restTemplate.getForObject("https://services.bovada.lv/services/sports/bet/betslip/" + bet.getVendorKey(), BetSlip.class);
-            if (betSlip.getStatus().equalsIgnoreCase("PLACED")) {
+            if (betSlip.getStatus().equalsIgnoreCase("SUCCESS")) {
                 bet.markPlaced();
                 return bet;
             } else if (!betSlip.getStatus().equalsIgnoreCase("PLACING")) {
