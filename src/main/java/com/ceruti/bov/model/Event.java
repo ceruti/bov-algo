@@ -64,7 +64,9 @@ public class Event {
         }
     }
 
-    private boolean bettingEnabled = true; // TODO: flip this back
+    // note: this is just on initialization: can be flipped in the UI in a LIVE setting
+    private boolean bettingEnabled = System.getProperty("spring.profiles.active") != null
+            && (System.getProperty("spring.profiles.active").contains("test") || System.getProperty("spring.profiles.active").contains("enableAutoBetting"));
 
     public void enableBetting() {
         this.bettingEnabled = true;

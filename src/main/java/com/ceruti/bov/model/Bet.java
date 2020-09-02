@@ -14,14 +14,30 @@ public class Bet {
     private double riskAmount;
     private double winAmount;
     private Date placedAt;
+    private String vendorKey;
 
     public void markPlaced() {
         this.status = Status.PLACED;
         this.placedAt = new Date();
     }
 
+    public void markFailed() {
+        this.status = Status.FAILED;
+        this.placedAt = new Date();
+    }
+
+    public void markNoToken() {
+        this.status = Status.NO_TOKEN;
+        this.placedAt = new Date();
+    }
+
+    public void markTimedOut() {
+        this.status = Status.TIMEOUT;
+        this.placedAt = new Date();
+    }
+
     enum Status {
-        PLACING, PLACED, FAILED
+        PLACING, PLACED, FAILED, NO_TOKEN, TIMEOUT
     }
 
     public Bet(Price price, double riskAmount) {

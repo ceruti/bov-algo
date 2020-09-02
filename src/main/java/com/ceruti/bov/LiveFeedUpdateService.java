@@ -64,7 +64,7 @@ public class LiveFeedUpdateService {
                             && wireMessage.getOutcomeId() != null
                             && wireMessage.getAmericanOdds() != null
                             && market.getOutcomes().containsKey(wireMessage.getOutcomeId())) {
-                        updated = updateOutcome((WireMessageType2) wireMessage, market, toUpdate.getId(), toUpdate);
+                        updated = updateOutcome(wireMessage, market, toUpdate.getId(), toUpdate);
                     }
                 }
             }
@@ -191,7 +191,7 @@ public class LiveFeedUpdateService {
         }
     }
 
-    private boolean updateOutcome(WireMessageType2 wireMessage, Market market, long eventId, Event toUpdate) {
+    private boolean updateOutcome(WireMessage wireMessage, Market market, long eventId, Event toUpdate) {
         Outcome outcomeToUpdate = market.getOutcomes().get(wireMessage.getOutcomeId());
         wireMessage.setDescription(outcomeToUpdate.getDescription());
         Price previousPrice = outcomeToUpdate.getPrice();
@@ -252,6 +252,8 @@ public class LiveFeedUpdateService {
 
         void setDescription(String newDescription);
 
+        String getNewPriceId();
+
         String getType();
 
     }
@@ -290,10 +292,6 @@ public class LiveFeedUpdateService {
             this.eventDescription = description;
         }
 
-        public String getNewPriceId() {
-            return super.oddsSlice.has("price") ? super.oddsSlice.getJSONObject("price").getString("id") : null;
-        }
-
     }
 
     @Data
@@ -325,7 +323,7 @@ public class LiveFeedUpdateService {
                     if (american.equalsIgnoreCase("EVEN")) {
                         return 100;
                     }
-                    return Integer.parseInt(american);
+                    return Integer.parseInt(american.replace("+", ""));
                 }
             }
             return null;
@@ -361,6 +359,11 @@ public class LiveFeedUpdateService {
         @Override
         public void setDescription(String newDescription) {
             // do nothing
+        }
+
+        @Override
+        public String getNewPriceId() {
+            return oddsSlice.has("price") ? oddsSlice.getJSONObject("price").getString("id") : null;
         }
 
         @Override
