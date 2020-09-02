@@ -1,14 +1,9 @@
 package com.ceruti.bov;
 
 import com.ceruti.bov.model.*;
-import com.ceruti.bov.BetPlacingService;
-import com.ceruti.bov.EventBook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Component
 public class BettingFacilitatorService {
@@ -16,6 +11,7 @@ public class BettingFacilitatorService {
     private static final double INIT_BET = 5.00; // TODO: update amounts?
     public static final int LOWER_BOUND_MONEYLINE_ENTRY = 100;
     public static final int UPPERBOUND_MONEYLINE_ENTRY = 200;
+    private final SharedExecutorService sharedExecutorService;
 
     private EventBook eventBook;
 
@@ -23,15 +19,12 @@ public class BettingFacilitatorService {
 
     private SimpMessagingTemplate template;
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(10);
-
     @Autowired
-    public BettingFacilitatorService(BetPlacingService betPlacingService, SimpMessagingTemplate simpMessagingTemplate, EventBook eventBook) {
+    public BettingFacilitatorService(BetPlacingService betPlacingService, SimpMessagingTemplate simpMessagingTemplate, EventBook eventBook, SharedExecutorService sharedExecutorService) {
         this.betPlacingService = betPlacingService;
         this.template = simpMessagingTemplate;
         this.eventBook = eventBook;
-    }
-
+        this.sharedExecutorService = sharedExecutorService;
     }
 
     private void printBettingLineUpdate(Event event, Outcome outcome, Price price) {
@@ -186,7 +179,7 @@ public class BettingFacilitatorService {
     }
 
     public void updateBettingSessionAsync(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price, Strategy stategy) {
-        executorService.submit(() -> {
+        sharedExecutorService.getExecutorService().submit(() -> {
            updateBettingSession(event, market, outcome, opposingOutcome, price, stategy);
         });
     }

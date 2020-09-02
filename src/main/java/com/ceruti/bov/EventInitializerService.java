@@ -17,19 +17,19 @@ public class EventInitializerService {
 
     private RestTemplate restTemplate;
 
-    private ExecutorService executorService;
+    private SharedExecutorService sharedExecutorService;
 
     private EventBook eventBook;
 
     @Autowired
-    public EventInitializerService(EventBook eventBook) {
+    public EventInitializerService(EventBook eventBook, SharedExecutorService sharedExecutorService) {
         this.eventBook = eventBook;
         restTemplate = new RestTemplate();
-        executorService = Executors.newFixedThreadPool(5);
+        this.sharedExecutorService = sharedExecutorService;
     }
 
     public void syncEventsAsync(String url) {
-        executorService.submit(() -> {
+        sharedExecutorService.getExecutorService().submit(() -> {
             try {
                 syncEvent(url);
             } catch (Exception e) {
