@@ -16,12 +16,14 @@ public class MessageController {
     private BettingFacilitatorService bettingFacilitatorService;
     private EventBook eventBook;
     private SimulationService simulationService;
+    private BetPlacingService betPlacingService;
 
     @Autowired
-    public MessageController(EventBook eventBook, SimulationService simulationService, BettingFacilitatorService bettingFacilitatorService) {
+    public MessageController(EventBook eventBook, SimulationService simulationService, BettingFacilitatorService bettingFacilitatorService, BetPlacingService betPlacingService) {
         this.simulationService = simulationService;
         this.eventBook = eventBook;
         this.bettingFacilitatorService = bettingFacilitatorService;
+        this.betPlacingService = betPlacingService;
     }
 
     /*
@@ -98,6 +100,11 @@ public class MessageController {
     @RequestMapping(value = "/simulations/{simulationId}/aggregate", method = RequestMethod.GET)
     public SimulationAggregateResult getSimulationAggregateResults(@PathVariable(value="simulationId") String simulationId) {
         return this.simulationService.getSimulationAggregate(simulationId);
+    }
+
+    @RequestMapping(value = "/token/{token}", method = RequestMethod.PUT)
+    public void setToken(@PathVariable(value="token") String token) {
+        this.betPlacingService.setToken("Bearer "+token);
     }
 
 }
