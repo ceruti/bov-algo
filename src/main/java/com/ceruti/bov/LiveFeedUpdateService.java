@@ -15,6 +15,7 @@ import java.util.*;
 @Component
 public class LiveFeedUpdateService {
 
+    public static final Strategy BETTING_STRATEGY = Strategy.AGGRESSIVE; // TODO: inject this via properties/VM args?
     private BettingFacilitatorService bettingFacilitatorService;
     private EventBook eventBook;
 
@@ -26,7 +27,7 @@ public class LiveFeedUpdateService {
 
     public static Collection<Long> getEventIds(String rawMessage) {
         if (rawMessage.contains("}|{")) {
-            WireMessage wireMessage = isType1(rawMessage) ? new WireMessageType1(rawMessage) : new WireMessageType2(rawMessage);
+            WireMessage wireMessage = getWireMessage(rawMessage);
             if (!wireMessage.getType().equalsIgnoreCase("outcome")) {
                 return null;
             }
@@ -53,7 +54,7 @@ public class LiveFeedUpdateService {
     public boolean updateEvent(Event toUpdate, String rawMessage) {
         boolean updated = false;
         if (rawMessage.contains("}|{")) {
-            WireMessage wireMessage = isType1(rawMessage) ? new WireMessageType1(rawMessage) : new WireMessageType2(rawMessage);
+            WireMessage wireMessage = getWireMessage(rawMessage);
             if (!wireMessage.getType().equalsIgnoreCase("outcome")) {
                 return false;
             }
@@ -77,6 +78,10 @@ public class LiveFeedUpdateService {
             }
         }
         return updated;
+    }
+
+    public static WireMessage getWireMessage(String rawMessage) {
+        return isType1(rawMessage) ? new WireMessageType1(rawMessage) : new WireMessageType2(rawMessage);
     }
 
     private static boolean updateEvent(Event toUpdate, JSONObject eventUpdate) {
@@ -191,16 +196,9 @@ public class LiveFeedUpdateService {
         wireMessage.setDescription(outcomeToUpdate.getDescription());
         Price previousPrice = outcomeToUpdate.getPrice();
         Price newPrice = new Price(wireMessage.getAmericanOdds(), wireMessage.getNewPriceId(), toUpdate.getClock(), toUpdate.getHomeScore(), toUpdate.getVisitorScore(), toUpdate.getCurrentPeriodHomeScore(), toUpdate.getCurrentPeriodVisitorScore());
+        addToPreviousPrices(outcomeToUpdate, previousPrice);
+        outcomeToUpdate.setPrice(newPrice);
         if (previousPrice == null || previousPrice.getAmerican() != wireMessage.getAmericanOdds().intValue()) {
-            List<Price> previousPrices = outcomeToUpdate.getPreviousPrices();
-            if (previousPrices == null) {
-                previousPrices = new ArrayList<>();
-            }
-            if (previousPrice != null) {
-                previousPrices.add(previousPrice);
-                outcomeToUpdate.setPreviousPrices(previousPrices);
-            }
-            outcomeToUpdate.setPrice(newPrice);
             System.out.println(String.format("[event %d] Updated odds: %s/%s -> %s %d",
                     eventId,
                     toUpdate.getDescription(),
@@ -211,6 +209,17 @@ public class LiveFeedUpdateService {
             return true;
         }
         return false;
+    }
+
+    private void addToPreviousPrices(Outcome outcomeToUpdate, Price previousPrice) {
+        List<Price> previousPrices = outcomeToUpdate.getPreviousPrices();
+        if (previousPrices == null) {
+            previousPrices = new ArrayList<>();
+        }
+        if (previousPrice != null) {
+            previousPrices.add(previousPrice);
+            outcomeToUpdate.setPreviousPrices(previousPrices);
+        }
     }
 
     private void faciliatePotentialBet(long eventId, Price price, Outcome outcome, Market market) {
@@ -227,12 +236,12 @@ public class LiveFeedUpdateService {
                     outcome,
                     opposingOutcome,
                     price,
-                    Strategy.BASIC
+                    BETTING_STRATEGY
             );
         }
     }
 
-    private interface WireMessage {
+    public interface WireMessage {
         Integer getAmericanOdds();
 
         String getOutcomeId();
@@ -248,7 +257,7 @@ public class LiveFeedUpdateService {
     }
 
     @Data
-    static class WireMessageType2 extends WireMessageType1 implements WireMessage {
+    public static class WireMessageType2 extends WireMessageType1 implements WireMessage {
 
         private String eventDescription;
 
@@ -282,13 +291,13 @@ public class LiveFeedUpdateService {
         }
 
         public String getNewPriceId() {
-            return super.oddsSlice.getJSONObject("price").getString("id");
+            return super.oddsSlice.has("price") ? super.oddsSlice.getJSONObject("price").getString("id") : null;
         }
 
     }
 
     @Data
-    private static class WireMessageType1 implements WireMessage {
+    public static class WireMessageType1 implements WireMessage {
         protected JSONObject oddsSlice;
         protected JSONObject outcomeSlice;
 

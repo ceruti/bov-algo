@@ -30,10 +30,6 @@ public class Price {
         this.currentPeriodVisitorScoreAtTimeOfPrice = currentPeriodVisitorScoreAtTimeOfPrice;
     }
 
-    public void updateCreated() {
-        created = new Date();
-    }
-
     public Price clone() {
         Price result = new Price();
         result.american = this.american;

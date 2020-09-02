@@ -31,6 +31,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -82,7 +87,7 @@ public class StrategyAnalysisIntegrationTests {
 
     @Test
 //    @Ignore
-    public void testBasicStrategy() throws Exception {
+    public void testStrategy() throws Exception {
         eventBook.setEnableUpdates(false);
         Query query = new Query();
         query.addCriteria(Criteria.where("version").is("v2.0"));
@@ -173,13 +178,23 @@ public class StrategyAnalysisIntegrationTests {
         toAggregationResultElement(jsonObject, true);
     }
 
-//    @Test
+    @Test
     public void wireMessageReplayTest() throws JsonProcessingException, JSONException {
-        Long eventId = 7651192L; // TODO: change this as needed for debugging
+        Long eventId = 7651191L; // TODO: change this as needed for debugging
         Query findEvent = new Query();
         findEvent.addCriteria(Criteria.where("_id").is(eventId));
         Event actualDbEvent = this.mongoTemplate
                 .findOne(findEvent, Event.class, "event");
+        Event replaySimulationEvent = getWireMessageReplaySimulatedEvent(eventId, actualDbEvent);
+
+        // TODO: delete this!!
+        replaySimulationEvent.setId(9999L);
+        this.mongoTemplate.save(replaySimulationEvent, "event");
+
+        System.out.print("");
+    }
+
+    private Event getWireMessageReplaySimulatedEvent(Long eventId, Event actualDbEvent) {
         Event replaySimulationEvent = new Event();
         replaySimulationEvent.setId(actualDbEvent.getId());
         replaySimulationEvent.setCompetitionId(actualDbEvent.getCompetitionId());
@@ -187,6 +202,8 @@ public class StrategyAnalysisIntegrationTests {
         replaySimulationEvent.setCompetitors(actualDbEvent.getCompetitors());
         replaySimulationEvent.setSport(actualDbEvent.getSport());
         replaySimulationEvent.setLive(true);
+        replaySimulationEvent.setRawWireMessages(actualDbEvent.getRawWireMessages());
+//        replaySimulationEvent.setRawEventSummaries(actualDbEvent.getRawEventSummaries());
         Map<String, Market> markets = new HashMap<>();
         for (String marketId : actualDbEvent.getMarkets().keySet()) {
             // need to be careful to clear in-session values
@@ -204,7 +221,7 @@ public class StrategyAnalysisIntegrationTests {
         for (String rawWireMessage : actualDbEvent.getRawWireMessages()) {
             liveFeedUpdateService.updateEvent(replaySimulationEvent, rawWireMessage);
         }
-        System.out.print("");
+        return replaySimulationEvent;
     }
 
     private static SimulationAggregateResultElement toAggregationResultElement(JSONObject jsonObject, boolean isBySport) throws JSONException {
@@ -229,7 +246,7 @@ public class StrategyAnalysisIntegrationTests {
     }
 
     private BettingExecutionMetaResults simulateBettingStrategy(Event event, Market market, Outcome outcome1, Outcome outcome2, List<Price> previousPrices1, List<Price> previousPrices2) {
-        List<OutcomeAndPriceTick> outcomeAndPriceTicks = getMergedPrices(outcome1, outcome2, previousPrices1, previousPrices2);
+        List<OutcomeAndPriceTick> outcomeAndPriceTicks = getMergedPrices(outcome1, outcome2, previousPrices1, previousPrices2, event.getRawWireMessages());
         String winningOutcomeId = market.getBettingSession() != null && market.getBettingSession().getWinningOutcomeId() != null ?
                 market.getBettingSession().getWinningOutcomeId() : getWinningOutcome(market, outcomeAndPriceTicks);
         if (winningOutcomeId == null) {
@@ -245,29 +262,69 @@ public class StrategyAnalysisIntegrationTests {
         return bettingExecutionMetaResults;
     }
 
-    private List<OutcomeAndPriceTick> getMergedPrices(Outcome outcome1, Outcome outcome2, List<Price> previousPrices1, List<Price> previousPrices2) {
-        List<OutcomeAndPriceTick> outcomeAndPriceTicks = new ArrayList<>();
+    private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
+    }
+
+    private List<OutcomeAndPriceTick> getMergedPrices(Outcome outcome1, Outcome outcome2, List<Price> previousPrices1, List<Price> previousPrices2, List<String> rawWireMessages) {
+        // IMPORTANT: need to match wire message order for replay
+        List<LiveFeedUpdateService.WireMessageType2> wireMessages = rawWireMessages.stream()
+                .filter(rawMessage -> rawMessage.contains("}|{"))
+                .map(LiveFeedUpdateService::getWireMessage)
+                .filter(wireMessage -> wireMessage instanceof LiveFeedUpdateService.WireMessageType2
+                        && ((LiveFeedUpdateService.WireMessageType2) wireMessage).getNewPriceId() != null
+                )
+                .map(wireMessage -> (LiveFeedUpdateService.WireMessageType2) wireMessage)
+                .filter(wireMessage -> wireMessage.getOutcomeId().equals(outcome1.getId()) || wireMessage.getOutcomeId().equals(outcome2.getId()))
+                .collect(Collectors.toList());
+
+        Map<String, Integer> priceIdToOriginalWireMesageIndex = new HashMap<>();
+        for (int i=0; i < wireMessages.size(); i++) {
+            priceIdToOriginalWireMesageIndex.put(wireMessages.get(i).getNewPriceId(), i);
+        }
+        OutcomeAndPriceTick[] outcomeAndPriceTicks = new OutcomeAndPriceTick[rawWireMessages.size()];
         for (Price price : previousPrices1) {
-            outcomeAndPriceTicks.add(new OutcomeAndPriceTick(outcome1, price));
+            int index = priceIdToOriginalWireMesageIndex.get(price.getId());
+            outcomeAndPriceTicks[index] = new OutcomeAndPriceTick(outcome1, price);
         }
         for (Price price : previousPrices2) {
-            outcomeAndPriceTicks.add(new OutcomeAndPriceTick(outcome2, price));
+            int index = priceIdToOriginalWireMesageIndex.get(price.getId());
+            outcomeAndPriceTicks[index] = new OutcomeAndPriceTick(outcome2, price);
         }
-        // TODO: make sure sorted in correct direction
-        outcomeAndPriceTicks.sort(Comparator.comparing(a -> a.price.getCreated()));
-        return outcomeAndPriceTicks;
+
+        int finalPriceOutcome1Index = priceIdToOriginalWireMesageIndex.get(outcome1.getPrice().getId());
+        outcomeAndPriceTicks[finalPriceOutcome1Index] = new OutcomeAndPriceTick(outcome1, outcome1.getPrice());
+
+        int finalPriceOutcome2Index = priceIdToOriginalWireMesageIndex.get(outcome2.getPrice().getId());
+        outcomeAndPriceTicks[finalPriceOutcome2Index] = new OutcomeAndPriceTick(outcome2, outcome1.getPrice());
+
+        List<OutcomeAndPriceTick> result = Arrays.stream(outcomeAndPriceTicks)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        return result;
     }
 
     private BettingExecutionMetaResults executeBettingStrategy(Event event, Market market, Outcome outcome1, Outcome outcome2, List<OutcomeAndPriceTick> outcomeAndPriceTicks, String winningOutcomeId) {
         BettingExecutionMetaResults bettingExecutionMetaResults = new BettingExecutionMetaResults(event, market, outcome1, outcome2, winningOutcomeId);
         boolean initialUnderdogSet = false;
         String lastFavoriteOutcomeId = outcomeAndPriceTicks.get(0).outcome.getId();
+        outcome1.setPrice(null);
+        outcome2.setPrice(null);
         for (int i = 0; i < outcomeAndPriceTicks.size(); i++) {
             OutcomeAndPriceTick currentTick = outcomeAndPriceTicks.get(i);
+            currentTick.outcome.setPrice(currentTick.price);
+            if (currentTick.outcome.getId().equals(outcome1)) {
+                outcome1.setPrice(currentTick.price);
+            }
+            if (currentTick.outcome.getId().equals(outcome2)) {
+                outcome2.setPrice(currentTick.price);
+            }
             updateClockAndScore(event, currentTick);
             initialUnderdogSet = analyzeTick(winningOutcomeId, bettingExecutionMetaResults, initialUnderdogSet, lastFavoriteOutcomeId, currentTick);
             Outcome opposingOutcome = currentTick.outcome.getId().equals(outcome1.getId()) ? outcome2 : outcome1;
-            bettingFacilitatorService.updateBettingSession(event, market, currentTick.outcome, opposingOutcome, currentTick.price, Strategy.BASIC);
+            market.getOutcomes().put(currentTick.outcome.getId(), currentTick.outcome);
+            bettingFacilitatorService.updateBettingSession(event, market, currentTick.outcome, opposingOutcome, currentTick.price, LiveFeedUpdateService.BETTING_STRATEGY);
             if (currentTick.price.getAmerican() < 100) {
                 lastFavoriteOutcomeId = currentTick.outcome.getId();
             }
@@ -346,8 +403,12 @@ public class StrategyAnalysisIntegrationTests {
         return null;
     }
 
-    @AllArgsConstructor
     private class OutcomeAndPriceTick {
+        public OutcomeAndPriceTick(Outcome outcome, Price price) {
+            this.outcome = outcome;
+            this.price = price;
+        }
+
         Outcome outcome;
         Price price;
     }

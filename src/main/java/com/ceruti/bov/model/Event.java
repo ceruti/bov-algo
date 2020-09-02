@@ -33,7 +33,7 @@ public class Event {
     private String gameStatus;
     private Date lastUpdated;
     private Date createdAt;
-    private String version = "v2.0";
+    private String version = "v2.3";
 
     @JsonIgnore
     List<String> rawWireMessages = new ArrayList<>();
