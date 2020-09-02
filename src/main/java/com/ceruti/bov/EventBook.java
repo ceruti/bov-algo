@@ -35,6 +35,9 @@ public class EventBook {
         Date thirtyMinutesAgo = new DateTime().minusMinutes(30).toDate();
         List<Event> events = this.mongoTemplate.find(Query.query(Criteria.where("lastUpdated").gte(thirtyMinutesAgo)), Event.class, "event");
         for (Event event : events) {
+            if (System.getProperty("spring.profiles.active") != null && System.getProperty("spring.profiles.active").contains("live")) {
+                event.setBettingEnabled(false);
+            }
             book.put(event.getId(), event);
         }
         System.out.println("Event book initialized from database.");

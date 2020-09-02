@@ -39,7 +39,9 @@ public class NullAwareBeanUtilsBean extends BeanUtilsBean {
     }
 
     public void updateEvent(Event toUpdate, Event source) throws InvocationTargetException, IllegalAccessException {
+        boolean bettingEnabled = toUpdate.isBettingEnabled(); // we don't want to overwrite this variable!!
         this.copyProperties(toUpdate, source);
+        toUpdate.setBettingEnabled(bettingEnabled);
         // NOTE: we won't bother to copy competitors because these shouldn't change
         copyMarkets(toUpdate, source);
     }
