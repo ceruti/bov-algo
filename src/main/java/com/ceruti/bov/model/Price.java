@@ -1,5 +1,6 @@
 package com.ceruti.bov.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,10 +13,20 @@ public class Price {
     private int american;
     private String id;
     private Date created = new Date();
+
+    @JsonIgnore
     private Clock clockAtTimeOfPrice;
+
+    @JsonIgnore
     private String homeScoreAtTimeOfPrice;
+
+    @JsonIgnore
     private String visitorScoreAtTimeOfPrice;
+
+    @JsonIgnore
     private int currentPeriodHomeScoreAtTimeOfPrice;
+
+    @JsonIgnore
     private int currentPeriodVisitorScoreAtTimeOfPrice;
 
     public Price(int american, String id, Clock clockAtTimeOfPrice, String homeScoreAtTimeOfPrice, String visitorScoreAtTimeOfPrice, int currentPeriodHomeScoreAtTimeOfPrice, int currentPeriodVisitorScoreAtTimeOfPrice) {
