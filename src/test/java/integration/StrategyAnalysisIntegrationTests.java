@@ -5,11 +5,13 @@ import com.ceruti.bov.model.*;
 import com.ceruti.bov.util.EventParseUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import lombok.AllArgsConstructor;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.bson.Document;
 import org.joda.time.DateTime;
@@ -24,12 +26,15 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 import static com.mongodb.client.model.Filters.exists;
+import static com.mongodb.client.model.Filters.in;
 
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;

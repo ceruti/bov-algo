@@ -2,15 +2,13 @@ package integration.strategy;
 
 import com.ceruti.bov.model.Event;
 import com.ceruti.bov.model.Market;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import integration.StrategyAnalysisIntegrationTests;
-import org.json.JSONException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles({"test", "strategy-none"})
-public class StategyNoneIT extends StrategyAnalysisIntegrationTests {
+@ActiveProfiles({"test", "strategy-aggressive"})
+public class StategyAggressiveIT extends StrategyAnalysisIntegrationTests {
 
     @Test
     public void testStrategyWorksAsExpected() throws Exception {
@@ -20,7 +18,10 @@ public class StategyNoneIT extends StrategyAnalysisIntegrationTests {
                 .findFirst().get();
         int totalBets = moneyLineMarket.getBettingSession().getPositions().values().stream()
                 .reduce(0, (subtotal, position) -> subtotal + position.getBets().size(), Integer::sum);
-        Assert.assertEquals(1, totalBets); // verify that only the initial bet was made
+        Assert.assertEquals(15, totalBets);
+        Assert.assertEquals(14.55, moneyLineMarket.getExpectedProfit(), .01);
+        Assert.assertEquals(6.25, moneyLineMarket.getMinimumProfit(), .01);
+        Assert.assertEquals(15.25, moneyLineMarket.getMaximumProfit(), .01);
     }
 
 }
