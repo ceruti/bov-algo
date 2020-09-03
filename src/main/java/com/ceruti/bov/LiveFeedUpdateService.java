@@ -1,7 +1,6 @@
 package com.ceruti.bov;
 
 import com.ceruti.bov.model.*;
-import com.ceruti.bov.strategy.Strategy;
 import com.ceruti.bov.util.ActiveProfileService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +16,6 @@ import java.util.*;
 @Slf4j
 public class LiveFeedUpdateService {
 
-    public static final Strategy BETTING_STRATEGY = Strategy.AGGRESSIVE; // TODO: inject this via properties/VM args?
     private final ActiveProfileService activeProfileService;
     private BettingFacilitatorService bettingFacilitatorService;
     private EventBook eventBook;
@@ -243,8 +241,7 @@ public class LiveFeedUpdateService {
                     market,
                     outcome,
                     opposingOutcome,
-                    price,
-                    BETTING_STRATEGY
+                    price
             );
         }
     }

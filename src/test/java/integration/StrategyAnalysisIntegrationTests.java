@@ -340,7 +340,7 @@ public class StrategyAnalysisIntegrationTests {
             initialUnderdogSet = analyzeTick(winningOutcomeId, bettingExecutionMetaResults, initialUnderdogSet, lastFavoriteOutcomeId, currentTick);
             Outcome opposingOutcome = currentTick.outcome.getId().equals(outcome1.getId()) ? outcome2 : outcome1;
             market.getOutcomes().put(currentTick.outcome.getId(), currentTick.outcome);
-            bettingFacilitatorService.updateBettingSession(event, market, currentTick.outcome, opposingOutcome, currentTick.price, LiveFeedUpdateService.BETTING_STRATEGY);
+            bettingFacilitatorService.updateBettingSession(event, market, currentTick.outcome, opposingOutcome, currentTick.price);
             if (currentTick.price.getAmerican() < 100) {
                 lastFavoriteOutcomeId = currentTick.outcome.getId();
             }

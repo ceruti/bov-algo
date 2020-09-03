@@ -2,7 +2,6 @@ package com.ceruti.bov;
 
 import com.ceruti.bov.model.*;
 import com.ceruti.bov.strategy.BettingStrategyService;
-import com.ceruti.bov.strategy.Strategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -132,7 +131,7 @@ public class BettingFacilitatorService {
     }
 
 
-    public void updateBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price, Strategy strategy) {
+    public void updateBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price) {
         if (!event.isBettingEnabled() || !outcome.isBettingEnabled() || event.isEndingSoon()) {
             return;
         }
