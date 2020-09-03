@@ -42,7 +42,11 @@ public class EventSyncService {
     @Scheduled(fixedDelay = 1000*60*5)
     public void refresh() {
         eventBook.getBook().keySet().removeIf(eventId -> {
-            DateTime lastUpdated = new DateTime(eventBook.getBook().get(eventId).getLastUpdated());
+            Event event = eventBook.getBook().get(eventId);
+            if (event.getMarkets().values().stream().anyMatch(market -> market.getBettingSession() != null)) {
+                return false;
+            }
+            DateTime lastUpdated = new DateTime(event.getLastUpdated());
             DateTime thirtyMinutesAgo = new DateTime().minusMinutes(30);
             return lastUpdated.isBefore(thirtyMinutesAgo);
         });
