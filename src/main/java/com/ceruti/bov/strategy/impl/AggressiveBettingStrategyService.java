@@ -4,8 +4,10 @@ import com.ceruti.bov.BettingFacilitatorService;
 import com.ceruti.bov.model.*;
 import com.ceruti.bov.strategy.BettingStrategyService;
 import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
 @Profile("strategy-aggressive")
+@Component
 public class AggressiveBettingStrategyService extends BettingStrategyService {
 
     @Override

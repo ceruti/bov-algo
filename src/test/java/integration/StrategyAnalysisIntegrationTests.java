@@ -69,7 +69,7 @@ public class StrategyAnalysisIntegrationTests {
     @Autowired
     MongoOperations mongoOperations;
 
-    @Test
+//    @Test
 //    @Ignore
     public void renameCollection() {
         eventBook.setEnableUpdates(false);
@@ -85,12 +85,12 @@ public class StrategyAnalysisIntegrationTests {
         }
     }
 
-    @Test
+//    @Test
     public void updateTennisScoreDebug() {
         // TODO implement
     }
 
-    @Test
+//    @Test
 //    @Ignore
     public void testStrategy() throws Exception {
         eventBook.setEnableUpdates(false);
@@ -140,7 +140,7 @@ public class StrategyAnalysisIntegrationTests {
         mongoTemplate.save(simulationAggregateResult, "simulationAggregations");
     }
 
-    @Test
+//    @Test
     public void testComputeAggregation() throws Exception {
         computeAggregation("meta");
     }
@@ -164,7 +164,7 @@ public class StrategyAnalysisIntegrationTests {
         return simulationAggregateResult;
     }
 
-    @Test
+//    @Test
     public void testParseJsonDocument() throws Exception {
         String json =
                 "{ " +
@@ -183,20 +183,25 @@ public class StrategyAnalysisIntegrationTests {
         toAggregationResultElement(jsonObject, true);
     }
 
-    @Test
+//    @Test
     public void wireMessageReplayTest() throws JsonProcessingException, JSONException {
+        _wireMessageReplay();
+    }
+
+    protected Event _wireMessageReplay() {
         Long eventId = 7651191L; // TODO: change this as needed for debugging
         Query findEvent = new Query();
         findEvent.addCriteria(Criteria.where("_id").is(eventId));
         Event actualDbEvent = this.mongoTemplate
                 .findOne(findEvent, Event.class, "event");
         Event replaySimulationEvent = getWireMessageReplaySimulatedEvent(eventId, actualDbEvent);
+        return replaySimulationEvent;
 
         // TODO: delete this!!
-        replaySimulationEvent.setId(9999L);
-        this.mongoTemplate.save(replaySimulationEvent, "event");
+//        replaySimulationEvent.setId(9999L);
+//        this.mongoTemplate.save(replaySimulationEvent, "event");
 
-        System.out.print("");
+//        System.out.print("");
     }
 
     private Event getWireMessageReplaySimulatedEvent(Long eventId, Event actualDbEvent) {
