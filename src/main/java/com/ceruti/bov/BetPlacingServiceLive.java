@@ -1,9 +1,9 @@
 package com.ceruti.bov;
 
 import com.ceruti.bov.model.Bet;
-import com.ceruti.bov.model.BetSlip;
 import com.ceruti.bov.model.Price;
-import org.joda.time.DateTime;
+import com.ceruti.bov.model.betslip.BetSlipResponse;
+import com.ceruti.bov.util.ObjectMapperUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
@@ -11,14 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.PrintStream;
-
 @Component
 @Profile("live")
 public class BetPlacingServiceLive implements BetPlacingService {
 
     public static final String PLACE_BET_URL = "https://services.bovada.lv/services/sports/bet/betslip";
     public static final int MAX_TRIES = 20;
+    public static final String BETSLIP_URL = "https://services.bovada.lv/services/sports/bet/betslip/";
 
     private String token;
 
@@ -34,7 +33,6 @@ public class BetPlacingServiceLive implements BetPlacingService {
             headers.set("Content-Type", "application/json");
             // don't let bovada know we are using java
             headers.set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36");
-
             return execution.execute(request, body);
         });
     }
@@ -44,52 +42,64 @@ public class BetPlacingServiceLive implements BetPlacingService {
         return placeBet(outcomeId, price, amountInCents);
     }
 
+    // TODO: turn off synchronized? Only synch because Bovada might not like concurrent bets from one account
     public synchronized Bet placeBet(String outcomeId, Price price, int amountInCents) {
         Bet bet = new Bet(price, amountInCents / 100.0);
-        if (token == null) {
-            bet.markNoToken();
-            return bet;
-        }
-        ResponseEntity<BetSlip> response = submitBetSlip(outcomeId, price, amountInCents);
-        boolean failed = response.getStatusCode().is4xxClientError() || response.getStatusCode().is5xxServerError();
-        if (failed || response.getBody() == null || response.getBody().getKey() == null) {
-            bet.markFailed();
-            return bet;
-        }
-        bet.setVendorKey(response.getBody().getKey());
-        for (int i = 0; i < MAX_TRIES; i++) {
-            BetSlip betSlip = restTemplate.getForObject("https://services.bovada.lv/services/sports/bet/betslip/" + bet.getVendorKey(), BetSlip.class);
-            if (betSlip.getStatus().equalsIgnoreCase("SUCCESS")) {
-                bet.markPlaced();
+        try {
+            if (token == null) {
+                bet.markNoToken();
                 return bet;
-            } else if (!betSlip.getStatus().equalsIgnoreCase("PLACING")) {
+            }
+            ResponseEntity<String> response = submitBetSlip(outcomeId, price, amountInCents);
+            boolean failed = response.getStatusCode().is4xxClientError() || response.getStatusCode().is5xxServerError();
+            if (failed) {
                 bet.markFailed();
                 return bet;
             }
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                // don't do anything
+            String body = response.getBody();
+            bet.getVendorResponses().add(body);
+            BetSlipResponse betSlipResponse = ObjectMapperUtil.readValue(body, BetSlipResponse.class);
+            bet.setVendorKey(betSlipResponse.getKey());
+            if (betSlipResponse.getStatus().equalsIgnoreCase("FAIL")) {
+                bet.markFailed();
+                bet.setErrorCode(betSlipResponse.getErrorCode());
+                bet.setErrorMessage(betSlipResponse.getErrorMessage());
+                return bet;
             }
+            for (int i = 0; i < MAX_TRIES; i++) {
+                String betSlipBodyJSON = restTemplate.getForObject(BETSLIP_URL + bet.getVendorKey(), String.class);
+                bet.getVendorResponses().add(betSlipBodyJSON);
+                BetSlipResponse _betSlipResponse = ObjectMapperUtil.readValue(betSlipBodyJSON, BetSlipResponse.class);
+                if (_betSlipResponse.getStatus().equalsIgnoreCase("SUCCESS")) {
+                    bet.markPlaced();
+                    return bet;
+                }
+                if (betSlipResponse.getStatus().equalsIgnoreCase("FAIL")) {
+                    bet.markFailed();
+                    bet.setErrorCode(betSlipResponse.getErrorCode());
+                    bet.setErrorMessage(betSlipResponse.getErrorMessage());
+                    return bet;
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    // don't do anything
+                }
+            }
+            bet.markTimedOut();
+        } catch (Exception e) {
+            e.printStackTrace();
+            bet.markFailed();
         }
-        bet.markTimedOut();
         return bet;
     }
 
-    public ResponseEntity<BetSlip> submitBetSlip(String outcomeId, Price price, int amountInCents) {
+    public ResponseEntity<String> submitBetSlip(String outcomeId, Price price, int amountInCents) {
         String requestBody = BET_REQUEST
                 .replace("{{OUTCOME_ID}}", outcomeId)
                 .replace("{{PRICE_ID}}", price.getId())
                 .replace("{{RISK_AMOUNT_IN_CENTS}}", Integer.toString(amountInCents));
-        return restTemplate.postForEntity(PLACE_BET_URL, requestBody, BetSlip.class);
-    }
-
-    public void printServerResponse(ResponseEntity<String> response, boolean failed) {
-        PrintStream out = failed ? System.err : System.out;
-        out.println("###############################");
-        out.println("Server response:");
-        out.println(response.getBody());
-        out.println("###############################");
+        return restTemplate.postForEntity(PLACE_BET_URL, requestBody, String.class);
     }
 
     @Override

@@ -1,9 +1,14 @@
 package com.ceruti.bov.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.http.client.ClientHttpResponse;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -15,6 +20,11 @@ public class Bet {
     private double winAmount;
     private Date placedAt;
     private String vendorKey;
+    private String errorMessage;
+    private String errorCode;
+
+    @JsonIgnore
+    private List<String> vendorResponses = new ArrayList<>();
 
     public void markPlaced() {
         this.status = Status.PLACED;

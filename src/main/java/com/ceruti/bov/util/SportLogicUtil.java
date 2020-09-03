@@ -139,11 +139,14 @@ public class SportLogicUtil {
     }
 
     private static boolean isFinalPeriod(Event event) {
+        if (event.getClock() == null) {
+            return false;
+        }
         return event.getClock().getPeriodNumber() == event.getClock().getNumberOfPeriods();
     }
 
     private static boolean isFirstPeriod(Event event) {
-        return event.getClock().getPeriodNumber() == 1;
+        return event.getClock() != null && event.getClock().getPeriodNumber() == 1;
     }
 
     private static boolean isSoccerEventEndingSoon(Event event) {

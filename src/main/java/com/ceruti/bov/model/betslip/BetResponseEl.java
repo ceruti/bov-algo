@@ -1,15 +1,15 @@
-package com.ceruti.bov.model;
+package com.ceruti.bov.model.betslip;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BetSlip {
+@Data
+public class BetResponseEl {
 
-    private String status;
     private String key;
+    private BetResponseElDetail response;
 
 }

@@ -1,7 +1,6 @@
 package com.ceruti.bov;
 
 import com.ceruti.bov.model.Bet;
-import com.ceruti.bov.model.BetSlip;
 import com.ceruti.bov.model.Price;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
