@@ -1,8 +1,7 @@
 package com.ceruti.bov;
 
-import com.ceruti.bov.BettingFacilitatorService;
 import com.ceruti.bov.model.*;
-import com.ceruti.bov.EventBook;
+import com.ceruti.bov.strategy.Strategy;
 import lombok.Data;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;

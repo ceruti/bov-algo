@@ -1,6 +1,8 @@
 package com.ceruti.bov;
 
 import com.ceruti.bov.model.*;
+import com.ceruti.bov.strategy.BettingStrategyService;
+import com.ceruti.bov.strategy.Strategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -11,91 +13,30 @@ import java.util.concurrent.Executors;
 @Component
 public class BettingFacilitatorService {
 
-    private static final double INIT_BET = 5.00; // TODO: update amounts?
-    public static final int LOWER_BOUND_MONEYLINE_ENTRY = 100;
-    public static final int UPPERBOUND_MONEYLINE_ENTRY = 200;
-    private final SharedExecutorService sharedExecutorService;
+    public static final double INIT_BET = 5.00; // TODO: update amounts?
+    public static final int DEFAULT_LOWER_BOUND_MONEYLINE_ENTRY = 100;
+    public static final int DEFAULT_UPPER_BOUND_MONEYLINE_ENTRY = 200;
+    public static final double VENDOR_MINIMUM_BET_AMOUNT = 0.50;
+
+    private SharedExecutorService sharedExecutorService;
+    private BettingStrategyService bettingStrategyService;
     private ExecutorService customBetPlacingExecutorService;
-
     private EventBook eventBook;
-
     private BetPlacingService betPlacingService;
-
     private SimpMessagingTemplate template;
 
     @Autowired
-    public BettingFacilitatorService(BetPlacingService betPlacingService, SimpMessagingTemplate simpMessagingTemplate, EventBook eventBook, SharedExecutorService sharedExecutorService) {
+    public BettingFacilitatorService(BetPlacingService betPlacingService,
+                                     SimpMessagingTemplate simpMessagingTemplate,
+                                     EventBook eventBook,
+                                     SharedExecutorService sharedExecutorService,
+                                     BettingStrategyService bettingStrategyService) {
         this.betPlacingService = betPlacingService;
         this.template = simpMessagingTemplate;
         this.eventBook = eventBook;
         this.sharedExecutorService = sharedExecutorService;
         this.customBetPlacingExecutorService = Executors.newFixedThreadPool(2);
-    }
-
-    private void printBettingLineUpdate(Event event, Outcome outcome, Price price) {
-//        System.out.println(String.format(
-//                "~~~~~~~~~~~~~~~~~~~~~\n"+
-//                "NEW LINE FOR ACTIVE BETTING SESSION:\n"+
-//                "\teventId: %d\n" +
-//                "\teventDescription: %s\n" +
-//                "\toutcome: %s\n"+
-//                "\tmoneyLine: %s\n" +
-//                "\ttime: %s\n"+
-//                "~~~~~~~~~~~~~~~~~~~~~\n",
-//                event.getId(),
-//                event.getDescription(),
-//                outcome.getDescription(),
-//                printAmericanPrice(price),
-//                price.getCreated().toString()
-//        ));
-    }
-
-    private void attemptPlaceAdditionalBetBasic(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession) {
-        BettingSession theoreticalBettingSession2x = getTheoreticalBettingSession(outcome, price, bettingSession, 2);
-        BettingSession theoreticalBettingSession1x = getTheoreticalBettingSession(outcome, price, bettingSession, 1);
-        double currentMinimumProfit = bettingSession.getMinimumProfit();
-        double theoreticalBettingSession1xMinimumProfit = theoreticalBettingSession1x.getMinimumProfit();
-        double theoreticalBettingSession2xMinimumProfit = theoreticalBettingSession2x.getMinimumProfit();
-        if (currentMinimumProfit < INIT_BET) { // TODO: change this?
-            // not making money yet -- we need to bet in the "opposite direction"
-            if (theoreticalBettingSession2xMinimumProfit >= currentMinimumProfit) {
-                attemptPlaceBetUpdate(event, market, outcome, price, bettingSession, INIT_BET * 2);
-            } else if (theoreticalBettingSession1xMinimumProfit >= currentMinimumProfit) {
-                attemptPlaceBetUpdate(event, market, outcome, price, bettingSession, INIT_BET);
-            }
-       } else {
-            // we've already profited
-            // so we can afford some risk again, hoping it will keep swinging back and forth
-            attemptPlaceBetUpdate(event, market, outcome, price, bettingSession, INIT_BET);
-       }
-    }
-
-    private void attemptPlaceAdditionalBetAggressive(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession) {
-        attemptPlaceAdditionalBet(event, market, outcome, price, bettingSession, INIT_BET, 0);
-    }
-
-    private void attemptPlaceAdditionalBet(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession, double currentMinimumProfitThreshold, double holdMinimumProfitsAbove) {
-        BettingSession theoreticalBettingSession2x = getTheoreticalBettingSession(outcome, price, bettingSession, 2);
-        BettingSession theoreticalBettingSession1x = getTheoreticalBettingSession(outcome, price, bettingSession, 1);
-        double currentMinimumProfit = bettingSession.getMinimumProfit();
-        double theoreticalBettingSession1xMinimumProfit = theoreticalBettingSession1x.getMinimumProfit();
-        double theoreticalBettingSession2xMinimumProfit = theoreticalBettingSession2x.getMinimumProfit();
-        if (currentMinimumProfit < currentMinimumProfitThreshold) { // TODO: change this?
-            // not making money yet -- we need to bet in the "opposite direction"
-            if (theoreticalBettingSession2xMinimumProfit >= holdMinimumProfitsAbove || theoreticalBettingSession2xMinimumProfit >= currentMinimumProfit) {
-                attemptPlaceBetUpdate(event, market, outcome, price, bettingSession, INIT_BET * 2);
-            } else if (theoreticalBettingSession1xMinimumProfit >= holdMinimumProfitsAbove || theoreticalBettingSession1xMinimumProfit >= currentMinimumProfit) {
-                attemptPlaceBetUpdate(event, market, outcome, price, bettingSession, INIT_BET);
-            }
-        } else {
-            // we've already profited
-            // so we can afford some risk again, hoping it will keep swinging back and forth
-            attemptPlaceBetUpdate(event, market, outcome, price, bettingSession, INIT_BET);
-        }
-    }
-
-    private void attemptPlaceAdditionalBetRetainProfits(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession) {
-        attemptPlaceAdditionalBet(event, market, outcome, price, bettingSession, INIT_BET*2, INIT_BET);
+        this.bettingStrategyService = bettingStrategyService;
     }
 
     public void attemptPlaceCustomBetAsync(Long eventId, String marketId, String outcomeId, String opposingOutcomeId, Price price, int amountInCents) {
@@ -147,19 +88,6 @@ public class BettingFacilitatorService {
         return market.getBettingSession();
     }
 
-    private BettingSession getTheoreticalBettingSession(Outcome outcome, Price price, BettingSession bettingSession, int factor) {
-        BettingSession theoreticalBettingSession2x = bettingSession.clone();
-        Bet theoreticalBet2X = getTheoreticalBet(price, factor);
-        theoreticalBettingSession2x.update(theoreticalBet2X, outcome.getId());
-        return theoreticalBettingSession2x;
-    }
-
-    private Bet getTheoreticalBet(Price price, int factor) {
-        Bet bet = new Bet(price, INIT_BET * factor);
-        bet.markPlaced();
-        return bet;
-    }
-
     private void printBettingSessionUpdate(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession, Bet bet) {
         String moreProfitableOutcomeId = bettingSession.getMoreProfitableOutcomeId();
         String lessProfitableOutcomeId = bettingSession.getLessProfitableOutcomeId();
@@ -197,19 +125,12 @@ public class BettingFacilitatorService {
                 bettingSession.getMaximumProfit(),
                 market.getExpectedProfit());
         System.out.println(betPlaced);
-        System.out.println(""); // TODO: delete
-//        this.template.convertAndSend("/topic/all", betPlaced);
     }
 
     private String printAmericanPrice(Price price) {
         return price.getAmerican() > 0 ? "+"+price.getAmerican() : Integer.toString(price.getAmerican());
     }
 
-    public void updateBettingSessionAsync(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price, Strategy stategy) {
-        sharedExecutorService.getExecutorService().submit(() -> {
-           updateBettingSession(event, market, outcome, opposingOutcome, price, stategy);
-        });
-    }
 
     public void updateBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price, Strategy strategy) {
         if (!event.isBettingEnabled() || !outcome.isBettingEnabled() || event.isEndingSoon()) {
@@ -220,25 +141,17 @@ public class BettingFacilitatorService {
                 return;
             }
             BettingSession bettingSession = market.getBettingSession();
-            if (bettingSession != null) {
-                printBettingLineUpdate(event, outcome, price);
-            }
-            if (bettingSession == null /*&& event.startedRecently()*/ && !eventBook.isOnInitiateBettingSessionBlacklist(event) && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
+            // TODO: figure out startedRecently() flag behavior
+            if (bettingSession == null /*&& event.startedRecently()*/ && !eventBook.isOnInitiateBettingSessionBlacklist(event) && price.getAmerican() > DEFAULT_LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < DEFAULT_UPPER_BOUND_MONEYLINE_ENTRY) {
                 attemptInitBettingSession(event, market, outcome, opposingOutcome, price);
             }
-            else if (bettingSession != null && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
-                switch (strategy) {
-                    case BASIC:
-                        attemptPlaceAdditionalBetBasic(event, market, outcome, price, bettingSession);
-                        break;
-                    case AGGRESSIVE:
-                        attemptPlaceAdditionalBetAggressive(event, market, outcome, price, bettingSession);
-                        break;
-                    case RETAIN_PROFITS:
-                        attemptPlaceAdditionalBetRetainProfits(event, market, outcome, price, bettingSession);
-                        break;
+            else if (bettingSession != null && bettingStrategyService.isWithinBoundariesForAdditionalBet(price.getAmerican())) {
+                double additionalBetRiskAmount = bettingStrategyService.getAdditionalBetRiskAmount(event, market, outcome, price, bettingSession);
+                if (additionalBetRiskAmount > VENDOR_MINIMUM_BET_AMOUNT) {
+                    attemptPlaceBetUpdate(event, market, outcome, price, bettingSession, additionalBetRiskAmount);
                 }
             }
         }
     }
+
 }
