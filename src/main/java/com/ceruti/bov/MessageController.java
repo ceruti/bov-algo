@@ -58,13 +58,13 @@ public class MessageController {
     }
 
     @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/bet", method = RequestMethod.PUT)
-    public Market placeCustomBet(@PathVariable(value="eventId") Long eventId,
+    public void placeCustomBet(@PathVariable(value="eventId") Long eventId,
                                  @PathVariable(value="marketId") String marketId,
                                  @PathVariable(value="outcomeId") String outcomeId,
                                  @RequestParam(required = true, value = "amountInCents") int amountInCents,
                                  @RequestParam(required = true, value = "opposingOutcomeId") String opposingOutcomeId,
                                  @RequestBody Price price)  {
-        return bettingFacilitatorService.attemptPlaceCustomBet(eventId, marketId, outcomeId, opposingOutcomeId, price, amountInCents);
+        bettingFacilitatorService.attemptPlaceCustomBetAsync(eventId, marketId, outcomeId, opposingOutcomeId, price, amountInCents);
     }
 
     @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/enable", method = RequestMethod.PUT)

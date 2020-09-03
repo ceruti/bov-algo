@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Date;
+
 @Component
 @Profile("live")
 public class BetPlacingServiceLive implements BetPlacingService {
@@ -37,14 +39,16 @@ public class BetPlacingServiceLive implements BetPlacingService {
         });
     }
 
-    public synchronized Bet placeBet(String outcomeId, Price price, double riskAmountInDollars) {
-        int amountInCents = (int) (Math.ceil(riskAmountInDollars * 100));
-        return placeBet(outcomeId, price, amountInCents);
+    @Override
+    public Bet initBet(Price price, int amountInCents) {
+        Bet bet = new Bet(price, amountInCents / 100.0);
+        bet.setPlacedAt(new Date());
+        return bet;
     }
 
     // TODO: turn off synchronized? Only synch because Bovada might not like concurrent bets from one account
-    public synchronized Bet placeBet(String outcomeId, Price price, int amountInCents) {
-        Bet bet = new Bet(price, amountInCents / 100.0);
+    @Override
+    public synchronized Bet submitBet(String outcomeId, Price price, int amountInCents, Bet bet) {
         try {
             if (token == null) {
                 bet.markNoToken();

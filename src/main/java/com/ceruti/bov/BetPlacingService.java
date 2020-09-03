@@ -5,9 +5,9 @@ import com.ceruti.bov.model.Price;
 
 public interface BetPlacingService {
 
-    Bet placeBet(String outcomeId, Price price, double riskAmountInDollars);
+    Bet initBet(Price price, int amountInCents);
 
-    Bet placeBet(String outcomeId, Price price, int amountInCents);
+    Bet submitBet(String outcomeId, Price price, int amountInCents, Bet bet);
 
     String getToken();
 

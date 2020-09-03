@@ -86,6 +86,11 @@ public class StrategyAnalysisIntegrationTests {
     }
 
     @Test
+    public void updateTennisScoreDebug() {
+        // TODO implement
+    }
+
+    @Test
 //    @Ignore
     public void testStrategy() throws Exception {
         eventBook.setEnableUpdates(false);
@@ -203,6 +208,7 @@ public class StrategyAnalysisIntegrationTests {
         replaySimulationEvent.setSport(actualDbEvent.getSport());
         replaySimulationEvent.setLive(true);
         replaySimulationEvent.setRawWireMessages(actualDbEvent.getRawWireMessages());
+        replaySimulationEvent.setBettingEnabled(true);
 //        replaySimulationEvent.setRawEventSummaries(actualDbEvent.getRawEventSummaries());
         Map<String, Market> markets = new HashMap<>();
         for (String marketId : actualDbEvent.getMarkets().keySet()) {

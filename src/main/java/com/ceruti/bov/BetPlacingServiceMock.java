@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.PrintStream;
+import java.util.Date;
 
 @Component
 @Profile("!live")
@@ -18,15 +19,17 @@ public class BetPlacingServiceMock implements BetPlacingService {
     @Autowired
     public BetPlacingServiceMock() {}
 
-    public synchronized Bet placeBet(String outcomeId, Price price, double riskAmountInDollars) {
-        int amountInCents = (int) (Math.ceil(riskAmountInDollars * 100));
-        return placeBet(outcomeId, price, amountInCents);
+    @Override
+    public Bet initBet(Price price, int amountInCents) {
+        Bet bet = new Bet(price, amountInCents / 100.0);
+        bet.setPlacedAt(new Date());
+        return bet;
     }
 
-    public synchronized Bet placeBet(String outcomeId, Price price, int amountInCents) {
-        Bet bet = new Bet(price, amountInCents / 100.0);
+    @Override
+    public Bet submitBet(String outcomeId, Price price, int amountInCents, Bet bet) {
         try {
-            Thread.sleep(2000);
+            Thread.sleep(4000);
         } catch (InterruptedException e) {
 
         }

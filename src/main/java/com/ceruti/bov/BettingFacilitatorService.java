@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 @Component
 public class BettingFacilitatorService {
 
@@ -12,6 +15,7 @@ public class BettingFacilitatorService {
     public static final int LOWER_BOUND_MONEYLINE_ENTRY = 100;
     public static final int UPPERBOUND_MONEYLINE_ENTRY = 200;
     private final SharedExecutorService sharedExecutorService;
+    private ExecutorService customBetPlacingExecutorService;
 
     private EventBook eventBook;
 
@@ -25,6 +29,7 @@ public class BettingFacilitatorService {
         this.template = simpMessagingTemplate;
         this.eventBook = eventBook;
         this.sharedExecutorService = sharedExecutorService;
+        this.customBetPlacingExecutorService = Executors.newFixedThreadPool(2);
     }
 
     private void printBettingLineUpdate(Event event, Outcome outcome, Price price) {
@@ -93,30 +98,52 @@ public class BettingFacilitatorService {
         attemptPlaceAdditionalBet(event, market, outcome, price, bettingSession, INIT_BET*2, INIT_BET);
     }
 
-    public Market attemptPlaceCustomBet(Long eventId, String marketId, String outcomeId, String opposingOutcomeId, Price price, int amountInCents) {
-        Bet bet = betPlacingService.placeBet(outcomeId, price, amountInCents);
-        Market market = eventBook.getBook().get(eventId).getMarkets().get(marketId);
-        if (market.getBettingSession() == null) {
-            market.initBettingSession(bet, outcomeId, opposingOutcomeId);
+    public void attemptPlaceCustomBetAsync(Long eventId, String marketId, String outcomeId, String opposingOutcomeId, Price price, int amountInCents) {
+        customBetPlacingExecutorService.submit(() -> {
+            attemptPlaceCustomBet(eventId, marketId, outcomeId, opposingOutcomeId, price, amountInCents);
+        });
+    }
+
+    public void attemptPlaceCustomBet(Long eventId, String marketId, String outcomeId, String opposingOutcomeId, Price price, int amountInCents) {
+        Event event = eventBook.getBook().get(eventId);
+        Market market = event.getMarkets().get(marketId);
+        Outcome outcome = market.getOutcomes().values().stream()
+                .filter(_outcome -> _outcome.getId().equalsIgnoreCase(outcomeId))
+                .findFirst().get();
+        Outcome opposingOutcome = market.getOutcomes().values().stream()
+                .filter(_outcome -> _outcome.getId().equalsIgnoreCase(opposingOutcomeId))
+                .findFirst().get();
+        BettingSession bettingSession = market.getBettingSession();
+        if (bettingSession == null) {
+            attemptInitBettingSession(event, market, outcome, opposingOutcome, price);
         } else {
-            market.updateBettingSession(bet, outcomeId);
+            attemptPlaceBetUpdate(event, market, outcome, price, bettingSession, amountInCents / 100.0);
         }
-        return market;
     }
 
     private BettingSession attemptPlaceBetUpdate(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession, double riskAmount) {
-        Bet bet = betPlacingService.placeBet(outcome.getId(), price, riskAmount);
+        int amountInCents = toAmountInCents(riskAmount);
+        Bet bet = betPlacingService.initBet(price, amountInCents);
         bettingSession.update(bet, outcome.getId());
-        printBettingSessionUpdate(event, market, outcome, price, market.getBettingSession(), bet);
-        template.convertAndSend( "/topics/all", event);
-        return market.getBettingSession();
+        return submitBet(event, market, outcome, price, amountInCents, bet);
+    }
+
+    private int toAmountInCents(double riskAmount) {
+        return (int) (Math.ceil(riskAmount * 100));
     }
 
     private BettingSession attemptInitBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price) {
-        Bet bet = betPlacingService.placeBet(outcome.getId(), price, INIT_BET);
+        int amountInCents = toAmountInCents(INIT_BET);
+        Bet bet = betPlacingService.initBet(price, amountInCents);
         market.initBettingSession(bet, outcome.getId(), opposingOutcome.getId());
+        return submitBet(event, market, outcome, price, amountInCents, bet);
+    }
+
+    private BettingSession submitBet(Event event, Market market, Outcome outcome, Price price, int amountInCents, Bet bet) {
+        template.convertAndSend("/topics/all", event); // broadcast that bet is in progress
+        betPlacingService.submitBet(outcome.getId(), price, amountInCents, bet);
+        template.convertAndSend("/topics/all", event); // broadcast that bet is placed
         printBettingSessionUpdate(event, market, outcome, price, market.getBettingSession(), bet);
-        template.convertAndSend( "/topics/all", event);
         return market.getBettingSession();
     }
 
@@ -196,7 +223,7 @@ public class BettingFacilitatorService {
             if (bettingSession != null) {
                 printBettingLineUpdate(event, outcome, price);
             }
-            if (bettingSession == null && event.startedRecently() && !eventBook.isOnInitiateBettingSessionBlacklist(event) && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
+            if (bettingSession == null /*&& event.startedRecently()*/ && !eventBook.isOnInitiateBettingSessionBlacklist(event) && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
                 attemptInitBettingSession(event, market, outcome, opposingOutcome, price);
             }
             else if (bettingSession != null && price.getAmerican() > LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < UPPERBOUND_MONEYLINE_ENTRY) {
