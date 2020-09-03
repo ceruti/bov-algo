@@ -287,7 +287,7 @@ public class StrategyAnalysisIntegrationTests {
         // IMPORTANT: need to match wire message order for replay
         List<LiveFeedUpdateService.WireMessageType2> wireMessages = rawWireMessages.stream()
                 .filter(rawMessage -> rawMessage.contains("}|{"))
-                .map(LiveFeedUpdateService::getWireMessage)
+                .map(rawMessage -> liveFeedUpdateService.getWireMessage(rawMessage))
                 .filter(wireMessage -> wireMessage instanceof LiveFeedUpdateService.WireMessageType2
                         && ((LiveFeedUpdateService.WireMessageType2) wireMessage).getNewPriceId() != null
                 )

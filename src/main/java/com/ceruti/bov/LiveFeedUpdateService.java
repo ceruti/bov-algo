@@ -2,7 +2,9 @@ package com.ceruti.bov;
 
 import com.ceruti.bov.model.*;
 import com.ceruti.bov.strategy.Strategy;
+import com.ceruti.bov.util.ActiveProfileService;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -12,19 +14,22 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
+@Slf4j
 public class LiveFeedUpdateService {
 
     public static final Strategy BETTING_STRATEGY = Strategy.AGGRESSIVE; // TODO: inject this via properties/VM args?
+    private final ActiveProfileService activeProfileService;
     private BettingFacilitatorService bettingFacilitatorService;
     private EventBook eventBook;
 
     @Autowired
-    public LiveFeedUpdateService(BettingFacilitatorService bettingFacilitatorService, EventBook eventBook) {
+    public LiveFeedUpdateService(BettingFacilitatorService bettingFacilitatorService, EventBook eventBook, ActiveProfileService activeProfileService) {
         this.bettingFacilitatorService = bettingFacilitatorService;
         this.eventBook = eventBook;
+        this.activeProfileService = activeProfileService;
     }
 
-    public static Collection<Long> getEventIds(String rawMessage) {
+    public Collection<Long> getEventIds(String rawMessage) {
         if (rawMessage.contains("}|{")) {
             WireMessage wireMessage = getWireMessage(rawMessage);
             if (!wireMessage.getType().equalsIgnoreCase("outcome")) {
@@ -79,11 +84,11 @@ public class LiveFeedUpdateService {
         return updated;
     }
 
-    public static WireMessage getWireMessage(String rawMessage) {
+    public WireMessage getWireMessage(String rawMessage) {
         return isType1(rawMessage) ? new WireMessageType1(rawMessage) : new WireMessageType2(rawMessage);
     }
 
-    private static boolean updateEvent(Event toUpdate, JSONObject eventUpdate) {
+    private boolean updateEvent(Event toUpdate, JSONObject eventUpdate) {
         if (eventUpdate.has("sport")) {
             toUpdate.setSport(eventUpdate.getString("sport"));
         }
@@ -117,7 +122,9 @@ public class LiveFeedUpdateService {
             }
         }
         updateClock(toUpdate, eventUpdate);
-        System.out.println(String.format("[event %d] Updated event: %s", toUpdate.getId(), toUpdate.getDescription()));
+        if (!activeProfileService.isTestMode()) {
+            log.info(String.format("[event %d] Updated event: %s", toUpdate.getId(), toUpdate.getDescription()));
+        }
         return true;
     }
 
@@ -155,7 +162,7 @@ public class LiveFeedUpdateService {
                 moneylineMarket.getBettingSession().setWinningOutcomeId(winningOutcome.getId());
             }
         } catch (Exception e) {
-            System.err.println("Unable to identify winner");
+            log.error("Unable to identify winner");
             e.printStackTrace();
         }
     }
@@ -198,12 +205,14 @@ public class LiveFeedUpdateService {
         addToPreviousPrices(outcomeToUpdate, previousPrice);
         outcomeToUpdate.setPrice(newPrice);
         if (previousPrice == null || previousPrice.getAmerican() != wireMessage.getAmericanOdds().intValue()) {
-            System.out.println(String.format("[event %d] Updated odds: %s/%s -> %s %d",
-                    eventId,
-                    toUpdate.getDescription(),
-                    market.getDescription(),
-                    wireMessage.getDescription(),
-                    wireMessage.getAmericanOdds()));
+            if (!activeProfileService.isTestMode()) {
+                log.info(String.format("[event %d] Updated odds: %s/%s -> %s %d",
+                        eventId,
+                        toUpdate.getDescription(),
+                        market.getDescription(),
+                        wireMessage.getDescription(),
+                        wireMessage.getAmericanOdds()));
+            }
             faciliatePotentialBet(eventId, newPrice, outcomeToUpdate, market);
             return true;
         }

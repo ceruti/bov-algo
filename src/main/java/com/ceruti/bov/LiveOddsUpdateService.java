@@ -39,7 +39,7 @@ public class LiveOddsUpdateService {
             return;
         }
         try {
-            Collection<Long> eventIds = LiveFeedUpdateService.getEventIds(wireMessage);
+            Collection<Long> eventIds = liveFeedUpdateService.getEventIds(wireMessage);
             if (eventIds == null) return;
             for (Long eventId : eventIds) {
                 if (eventId != null && this.eventBook.getBook().containsKey(eventId)) {

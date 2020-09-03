@@ -1,3 +1,4 @@
+import com.ceruti.bov.Application;
 import com.ceruti.bov.model.Event;
 import com.ceruti.bov.util.EventParseUtil;
 import com.ceruti.bov.LiveFeedUpdateService;
@@ -5,11 +6,25 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest(
+        classes = Application.class)
+@ActiveProfiles({"test", "strategy-none"})
+@AutoConfigureMockMvc
 public class LiveFeedUpdateServiceTest {
 
     private Event event;
     private Event sorinEvent;
+
+    @Autowired
+    private LiveFeedUpdateService liveFeedUpdateService;
 
     private String LAKERS_BLAZERS_EVENT_INIT = "{\n" +
             "            \"id\":\"7625799\",\n" +
@@ -437,7 +452,7 @@ public class LiveFeedUpdateServiceTest {
 
     @Test
     public void testGetEventId() {
-        Long eventId = LiveFeedUpdateService.getEventIds(LAKERS_MONEY_LINE_WIRE_UPEATE).iterator().next();
+        Long eventId = liveFeedUpdateService.getEventIds(LAKERS_MONEY_LINE_WIRE_UPEATE).iterator().next();
         Assertions.assertEquals(7625799, eventId);
     }
 
