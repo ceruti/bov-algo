@@ -80,8 +80,8 @@ public class BetPlacingServiceLive implements BetPlacingService {
                 }
                 if (_betSlipResponse.getStatus().equalsIgnoreCase("FAIL")) {
                     bet.markFailed();
-                    bet.setErrorCode(betSlipResponse.getErrorCode());
-                    bet.setErrorMessage(betSlipResponse.getErrorMessage());
+                    bet.setErrorCode(_betSlipResponse.getErrorCode());
+                    bet.setErrorMessage(_betSlipResponse.getErrorMessage());
                     return bet;
                 }
                 try {
