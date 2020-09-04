@@ -3,12 +3,11 @@ package integration.strategy;
 import com.ceruti.bov.model.Event;
 import com.ceruti.bov.model.Market;
 import integration.StrategyAnalysisIntegrationTests;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles({"test", "strategy-variable_amount_favor_long"})
-public class StrategyVariableAmountsFavorLongOddsIT extends StrategyAnalysisIntegrationTests {
+@ActiveProfiles({"test", "strategy-variable_amount_favor_likely"})
+public class StrategyVariableAmountsFavorLikelyOddsIT extends StrategyAnalysisIntegrationTests {
 
     @Test
     public void testStrategyWorksAsExpected() throws Exception {
