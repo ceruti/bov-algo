@@ -5,6 +5,8 @@ import com.ceruti.bov.model.*;
 import com.ceruti.bov.util.EventParseUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.AggregateIterable;
@@ -48,7 +50,7 @@ import java.util.stream.Stream;
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class)
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "strategy-none"})
 @AutoConfigureMockMvc
 public class StrategyAnalysisIntegrationTests {
 
@@ -183,9 +185,25 @@ public class StrategyAnalysisIntegrationTests {
         }
     }
 
-    //    @Test
+    @Test
     public void testComputeAggregation() throws Exception {
         computeAggregation("meta");
+    }
+
+    @Test
+    public void backfillMedianAggregations() throws Exception {
+        List<SimulationAggregateResult> simulationAggregations = mongoTemplate.findAll(SimulationAggregateResult.class, "simulationAggregations");
+        for (SimulationAggregateResult simulationAggregation : simulationAggregations) {
+            for (String sportkey : simulationAggregation.getResults().keySet()) {
+                double medianNetProfitForSport = calculateMedianNetProfit(sportkey, simulationAggregation.getId());
+                SimulationAggregateResultElement simulationAggregateResultElement = simulationAggregation.getResults().get(sportkey);
+                simulationAggregateResultElement.setMedianProfit(medianNetProfitForSport);
+            }
+        }
+        for (SimulationAggregateResult simulationAggregateResult : simulationAggregations) {
+            mongoTemplate.save(simulationAggregateResult, "simulationAggregations");
+        }
+
     }
 
     private SimulationAggregateResult computeAggregation(String collectionName) throws Exception {
@@ -197,17 +215,40 @@ public class StrategyAnalysisIntegrationTests {
         AggregateIterable<Document> sportAggregates = AggregationQueryUtil.getAggregationBySport(collection);
         for (Document sportAggregate : sportAggregates) {
             SimulationAggregateResultElement simulationAggregateResultElement = toAggregationResultElement(new JSONObject(sportAggregate.toJson()), true);
+            double medianProfit = calculateMedianNetProfit(simulationAggregateResultElement.getSport(), collectionName);
+            simulationAggregateResultElement.setMedianProfit(medianProfit);
             simulationAggregateResult.getResults().put(simulationAggregateResultElement.getSport(), simulationAggregateResultElement);
         }
         AggregateIterable<Document> allAggregations = AggregationQueryUtil.getAllAggregations(collection);
         for (Document aggregation : allAggregations) {
             SimulationAggregateResultElement simulationAggregateResultElement = toAggregationResultElement(new JSONObject(aggregation.toJson()), false);
+            double medianProfit = calculateMedianNetProfit(simulationAggregateResultElement.getSport(), collectionName);
+            simulationAggregateResultElement.setMedianProfit(medianProfit);
             simulationAggregateResult.getResults().put(simulationAggregateResultElement.getSport(), simulationAggregateResultElement);
         }
         return simulationAggregateResult;
     }
 
-//    @Test
+    private double calculateMedianNetProfit(String sport, String collectionName) {
+        BasicDBObject query = BasicDBObject.parse("{}");
+        if (!sport.equals("ALL")) {
+            query = BasicDBObject.parse("{\"sport\" : \"" + sport + "\"}");
+        }
+        long count = mongoTemplate.getCollection(collectionName).count(query);
+        if (count == 0) {
+            return 0;
+        }
+        DBCursor profitRealized = mongoTemplate.getCollection(collectionName)
+                .find(query)
+                .sort(new BasicDBObject("profitRealized", 1))
+                .skip((int) (count / 2 - 1))
+                .limit(1);
+        DBObject medianObj = profitRealized.next();
+        double profitRealizedMeidan = (Double) medianObj.get("profitRealized");
+        return profitRealizedMeidan;
+    }
+
+    //    @Test
     public void testParseJsonDocument() throws Exception {
         String json =
                 "{ " +

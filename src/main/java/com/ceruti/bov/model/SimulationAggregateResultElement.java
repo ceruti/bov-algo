@@ -12,6 +12,7 @@ public class SimulationAggregateResultElement {
     private String sport;
     private double netProfit;
     private double averageProfit;
+    private double medianProfit;
     private int totalBets;
     private double averageBets;
     private int eventsBetOn;
