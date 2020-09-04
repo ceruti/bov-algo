@@ -2,7 +2,6 @@ package com.ceruti.bov.strategy.impl;
 
 import com.ceruti.bov.BettingFacilitatorService;
 import com.ceruti.bov.model.*;
-import com.ceruti.bov.strategy.BettingStrategyService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +21,6 @@ public class RetainProfitBettingStrategyService extends AggressiveBettingStrateg
 
     @Override
     public int getUpperBoundaryForAdditionalBet() {
-        return DFEAULT_UPPER_BOUNDARY_FOR_ADDITIONAL_BET;
+        return DEFAULT_UPPER_BOUNDARY_FOR_ADDITIONAL_BET;
     }
 }

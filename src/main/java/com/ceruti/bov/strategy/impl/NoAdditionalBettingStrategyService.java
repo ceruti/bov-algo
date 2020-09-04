@@ -1,6 +1,5 @@
 package com.ceruti.bov.strategy.impl;
 
-import com.ceruti.bov.BetPlacingService;
 import com.ceruti.bov.model.*;
 import com.ceruti.bov.strategy.BettingStrategyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +29,6 @@ public class NoAdditionalBettingStrategyService extends BettingStrategyService {
 
     @Override
     public int getUpperBoundaryForAdditionalBet() {
-        return DFEAULT_UPPER_BOUNDARY_FOR_ADDITIONAL_BET;
+        return DEFAULT_UPPER_BOUNDARY_FOR_ADDITIONAL_BET;
     }
 }

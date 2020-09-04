@@ -41,6 +41,6 @@ public class BasicBettingStrategyService extends BettingStrategyService {
 
     @Override
     public int getUpperBoundaryForAdditionalBet() {
-        return DFEAULT_UPPER_BOUNDARY_FOR_ADDITIONAL_BET;
+        return DEFAULT_UPPER_BOUNDARY_FOR_ADDITIONAL_BET;
     }
 }

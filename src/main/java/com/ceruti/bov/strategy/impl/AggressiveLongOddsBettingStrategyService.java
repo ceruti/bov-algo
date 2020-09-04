@@ -11,9 +11,7 @@ public class AggressiveLongOddsBettingStrategyService extends AggressiveBettingS
     private static final int UPPER_BOUNDARY_FOR_ADDITIONAL_BET = 250;
 
     @Override
-    public int getLowerBoundaryForAdditionalBet() {
-        return LOWER_BOUNDARY_FOR_ADDITIONAL_BET;
-    }
+    public int getLowerBoundaryForAdditionalBet() { return LOWER_BOUNDARY_FOR_ADDITIONAL_BET; }
 
     @Override
     public int getUpperBoundaryForAdditionalBet() {

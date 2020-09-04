@@ -22,7 +22,7 @@ public class AggressiveBettingStrategyService extends BettingStrategyService {
 
     @Override
     public int getUpperBoundaryForAdditionalBet() {
-        return DFEAULT_UPPER_BOUNDARY_FOR_ADDITIONAL_BET;
+        return DEFAULT_UPPER_BOUNDARY_FOR_ADDITIONAL_BET;
     }
 
     protected double getAdditionalBetRiskAmount(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession, double currentMinimumProfitThreshold, double holdMinimumProfitsAbove) {
