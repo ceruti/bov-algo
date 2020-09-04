@@ -1,14 +1,11 @@
 package com.ceruti.bov.strategy.impl.variable;
 
-import com.ceruti.bov.model.*;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
-
 @Profile("strategy-variable_amount_favor_long_high_threshold")
 @Component
-public class VariableAmount_FavorLongOdds_HighThreshold_BettingStrategyService extends VariableAmountFavorLongOddsBettingStrategyService {
+public class VariableAmount_FavorLongOdds_HighThreshold_BettingStrategyService extends VariableAmount_FavorLongOdds_BettingStrategyService {
 
     private static final double SOFTENING_FACTOR = 5.0; // TODO: change this? increasing will decrease typical wager amount
 

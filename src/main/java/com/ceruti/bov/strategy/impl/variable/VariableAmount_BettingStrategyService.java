@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 
-public abstract class VariableAmountBettingStrategyService extends BettingStrategyService {
+public abstract class VariableAmount_BettingStrategyService extends BettingStrategyService {
 
     private static final double SOFTENING_FACTOR = 5.0; // TODO: change this? increasing will decrease typical wager amount
     private static final int UPPER_BOUNDARY_FOR_ADDITIONAL_BET = 400; // need a higher bound than usual for variale strategies

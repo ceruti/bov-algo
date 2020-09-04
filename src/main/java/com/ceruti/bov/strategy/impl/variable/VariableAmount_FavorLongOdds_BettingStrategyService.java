@@ -6,16 +6,16 @@ import org.springframework.stereotype.Component;
 
 import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 
-@Profile("strategy-variable_amount_favor_likely")
+@Profile("strategy-variable_amount_favor_long")
 @Component
-public class VariableAmountFavorLikelyOddsBettingStrategyService extends VariableAmountBettingStrategyService {
+public class VariableAmount_FavorLongOdds_BettingStrategyService extends VariableAmount_BettingStrategyService {
 
-    private static final double SOFTENING_FACTOR = 2.0; // TODO: change this? increasing will decrease typical wager amount, which effectively means more bets per session
+    private static final double SOFTENING_FACTOR = 5.0; // TODO: change this? increasing will decrease typical wager amount
 
     @Override
     public double getAdditionalBetRiskAmount(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession) {
-        double baseRiskAmount = INIT_BET * 2.0;
-        double riskAmount = baseRiskAmount / (SOFTENING_FACTOR * winMultiplier(price));
+        double baseRiskAmount = INIT_BET * 2.0; // TODO: change this?
+        double riskAmount = (baseRiskAmount * winMultiplier(price)) / SOFTENING_FACTOR;
         return getAdditionalBetRiskAmount(outcome, price, bettingSession, riskAmount);
     }
 }
