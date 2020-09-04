@@ -23,4 +23,9 @@ public class StrategyNoneIT extends StrategyAnalysisIntegrationTests {
         Assert.assertEquals(1, totalBets); // verify that only the initial bet was made
     }
 
+    @Test
+    public void runFullSimluation() throws Exception {
+        super.testStrategy("NO_ADDITIONAL_BETS");
+    }
+
 }

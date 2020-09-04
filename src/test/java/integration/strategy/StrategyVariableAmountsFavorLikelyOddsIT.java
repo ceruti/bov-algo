@@ -27,4 +27,9 @@ public class StrategyVariableAmountsFavorLikelyOddsIT extends StrategyAnalysisIn
 //        Assert.assertEquals(17.28, moneyLineMarket.getMaximumProfit(), .01);
     }
 
+    @Test
+    public void runFullSimluation() throws Exception {
+        super.testStrategy("FAVOR_LIKELY_ODDS");
+    }
+
 }

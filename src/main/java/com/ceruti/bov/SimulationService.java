@@ -10,7 +10,9 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,9 +26,19 @@ public class SimulationService {
         this.mongoTemplate = mongoTemplate;
     }
 
-    public List<String> getSimulationids() {
-        Set<String> collectionNames = this.mongoTemplate.getDb().getCollectionNames();
-        return collectionNames.stream().filter(collectionName -> collectionName.startsWith("bettingExecutionMetaResults")).collect(Collectors.toList());
+    public List<String> getSimulationids() { // sort by best first
+        List<SimulationAggregateResult> simulationAggregations = this.mongoTemplate.findAll(SimulationAggregateResult.class, "simulationAggregations");
+        Map<String, Double> simulationToNetProfit = new HashMap<>();
+        for (SimulationAggregateResult simulationAggregateResult : simulationAggregations) {
+            double netProfitForSimulation = simulationAggregateResult.getResults().get("ALL").getNetProfit();
+            simulationToNetProfit.put(simulationAggregateResult.getId(), netProfitForSimulation);
+        }
+        List<String> collectionNames = this.mongoTemplate.getDb().getCollectionNames()
+                .stream().filter(collectionName -> collectionName.startsWith("bettingExecutionMetaResults")).collect(Collectors.toList());
+        List<String> sortedCollectionNames = simulationToNetProfit.keySet().stream()
+                .sorted((collectionNameA, collectionNameB) -> simulationToNetProfit.get(collectionNameB).compareTo(simulationToNetProfit.get(collectionNameA)))
+                .collect(Collectors.toList());
+        return sortedCollectionNames;
     }
 
     // TODO: add record limit

@@ -27,4 +27,9 @@ public class StrategyVariableAmountsFavorLongOddsGeometricIT extends StrategyAna
 //        Assert.assertEquals(17.28, moneyLineMarket.getMaximumProfit(), .01);
     }
 
+    @Test
+    public void runFullSimluation() throws Exception {
+        super.testStrategy("FAVOR_LONG_ODDS_GEOMETRIC");
+    }
+
 }

@@ -28,4 +28,9 @@ public class StrategyAggressiveLongOddsIT extends StrategyAnalysisIntegrationTes
         Assert.assertEquals(11.50, moneyLineMarket.getMaximumProfit(), .01);
     }
 
+    @Test
+    public void runFullSimluation() throws Exception {
+        super.testStrategy("AGGRESSIVE_LONG_ODDS");
+    }
+
 }

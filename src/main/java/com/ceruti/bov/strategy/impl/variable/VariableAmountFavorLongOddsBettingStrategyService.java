@@ -13,8 +13,8 @@ import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 public class VariableAmountFavorLongOddsBettingStrategyService extends VariableAmountBettingStrategyService {
 
     private static final double SOFTENING_FACTOR = 5.0; // TODO: change this? increasing will decrease typical wager amount
-    @Override
 
+    @Override
     public double getAdditionalBetRiskAmount(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession) {
         double baseRiskAmount = INIT_BET * 2.0; // TODO: change this?
         double riskAmount = (baseRiskAmount * winMultiplier(price)) / SOFTENING_FACTOR;

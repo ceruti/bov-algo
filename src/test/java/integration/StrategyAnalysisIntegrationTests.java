@@ -36,7 +36,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -50,6 +53,7 @@ import java.util.stream.Stream;
 public class StrategyAnalysisIntegrationTests {
 
     public static final String SIMULATION_PREFIX = "BASIC-WITH-TIME-CONTROLS-ALLOW_TENNIS";
+    public static final int MINIMUM_PRICES_QUOTES = 100;
 
     public StrategyAnalysisIntegrationTests() {}
 
@@ -74,6 +78,8 @@ public class StrategyAnalysisIntegrationTests {
     @Autowired
     MongoOperations mongoOperations;
 
+    ExecutorService executorService = Executors.newFixedThreadPool(40);
+
 //    @Test
 //    @Ignore
     public void renameCollection() {
@@ -95,15 +101,52 @@ public class StrategyAnalysisIntegrationTests {
         // TODO implement
     }
 
+    static <T> List<List<T>> chopped(List<T> list, final int L) {
+        List<List<T>> parts = new ArrayList<List<T>>();
+        final int N = list.size();
+        for (int i = 0; i < N; i += L) {
+            parts.add(new ArrayList<T>(
+                    list.subList(i, Math.min(N, i + L)))
+            );
+        }
+        return parts;
+    }
+
 //    @Test
 //    @Ignore
-    public void testStrategy() throws Exception {
+    public void testStrategy(String simulationName) throws Exception {
         eventBook.setEnableUpdates(false);
         Query query = new Query();
-        query.addCriteria(Criteria.where("version").is("v2.0"));
+        String[] allowedVersions = new String[]{"v2.0", "v2.1", "v2.2", "v2.3", "v2.4"};
+        query.addCriteria(
+            Criteria.where("version").in(allowedVersions)
+        );
         List<Event> events = mongoTemplate.find(query, Event.class, "event");
+        List<Callable<Boolean>> processChunks = chopped(events, 100)
+                .stream()
+                .map(eventChunk -> simulateCallable(eventChunk))
+                .collect(Collectors.toList());
+        executorService.invokeAll(processChunks);
+        String collectionName = "bettingExecutionMetaResults-" + simulationName + new DateTime().getMillis();
+        mongoTemplate.getCollection("bettingExecutionMetaResults").rename(collectionName);
+        SimulationAggregateResult simulationAggregateResult = computeAggregation(collectionName);
+        mongoTemplate.save(simulationAggregateResult, "simulationAggregations");
+    }
+
+    private Callable<Boolean> simulateCallable(List<Event> chunk) {
+        return () -> {
+            simluateStrategy(chunk);
+            return true;
+        };
+    }
+
+    protected void simluateStrategy(List<Event> events) {
         List<BettingExecutionMetaResults> bettingExecutionMetaResultsBuffer = new ArrayList<>();
-        for (Event event : events) {
+        for (int i=0; i<events.size(); i++) {
+            if (i % 100 == 0) {
+                System.out.println(String.format("Event %d of %d", i, events.size()));
+            }
+            Event event = events.get(i);
             event.setSport(EventBook.getEquivalentKey(event.getSport()));
             Map<String, Market> markets = event.getMarkets();
             if (markets != null) {
@@ -118,8 +161,8 @@ public class StrategyAnalysisIntegrationTests {
                                 List<Price> previousPrices2 = outcome2.getPreviousPrices();
                                 if (previousPrices1 != null
                                     && previousPrices2 != null
-                                    && previousPrices1.size() > 15
-                                    && previousPrices2.size() > 15) {
+                                    && previousPrices1.size() > MINIMUM_PRICES_QUOTES
+                                    && previousPrices2.size() > MINIMUM_PRICES_QUOTES) {
                                     BettingExecutionMetaResults bettingExecutionMetaResults = simulateBettingStrategy(event, market, outcome1, outcome2, previousPrices1, previousPrices2);
                                     if (bettingExecutionMetaResults != null) {
                                         bettingExecutionMetaResultsBuffer.add(bettingExecutionMetaResults);
@@ -130,7 +173,6 @@ public class StrategyAnalysisIntegrationTests {
                                     }
                                 }
                             }
-
                         }
                     }
                 }
@@ -139,13 +181,9 @@ public class StrategyAnalysisIntegrationTests {
         if (bettingExecutionMetaResultsBuffer.size() > 0) {
             analysisRepository.save(bettingExecutionMetaResultsBuffer);
         }
-        String collectionName = "bettingExecutionMetaResults-" + SIMULATION_PREFIX + new DateTime().getMillis();
-        mongoTemplate.getCollection("bettingExecutionMetaResults").rename(collectionName);
-        SimulationAggregateResult simulationAggregateResult = computeAggregation(collectionName);
-        mongoTemplate.save(simulationAggregateResult, "simulationAggregations");
     }
 
-//    @Test
+    //    @Test
     public void testComputeAggregation() throws Exception {
         computeAggregation("meta");
     }
@@ -301,19 +339,27 @@ public class StrategyAnalysisIntegrationTests {
         }
         OutcomeAndPriceTick[] outcomeAndPriceTicks = new OutcomeAndPriceTick[rawWireMessages.size()];
         for (Price price : previousPrices1) {
-            int index = priceIdToOriginalWireMesageIndex.get(price.getId());
-            outcomeAndPriceTicks[index] = new OutcomeAndPriceTick(outcome1, price);
+            Integer index = priceIdToOriginalWireMesageIndex.get(price.getId());
+            if (index != null) {
+                outcomeAndPriceTicks[index] = new OutcomeAndPriceTick(outcome1, price);
+            }
         }
         for (Price price : previousPrices2) {
-            int index = priceIdToOriginalWireMesageIndex.get(price.getId());
-            outcomeAndPriceTicks[index] = new OutcomeAndPriceTick(outcome2, price);
+            Integer index = priceIdToOriginalWireMesageIndex.get(price.getId());
+            if (index != null) {
+                outcomeAndPriceTicks[index] = new OutcomeAndPriceTick(outcome2, price);
+            }
         }
 
-        int finalPriceOutcome1Index = priceIdToOriginalWireMesageIndex.get(outcome1.getPrice().getId());
-        outcomeAndPriceTicks[finalPriceOutcome1Index] = new OutcomeAndPriceTick(outcome1, outcome1.getPrice());
+        Integer finalPriceOutcome1Index = priceIdToOriginalWireMesageIndex.get(outcome1.getPrice().getId());
+        if (finalPriceOutcome1Index != null) {
+            outcomeAndPriceTicks[finalPriceOutcome1Index] = new OutcomeAndPriceTick(outcome1, outcome1.getPrice());
+        }
 
-        int finalPriceOutcome2Index = priceIdToOriginalWireMesageIndex.get(outcome2.getPrice().getId());
-        outcomeAndPriceTicks[finalPriceOutcome2Index] = new OutcomeAndPriceTick(outcome2, outcome1.getPrice());
+        Integer finalPriceOutcome2Index = priceIdToOriginalWireMesageIndex.get(outcome2.getPrice().getId());
+        if (finalPriceOutcome2Index != null) {
+            outcomeAndPriceTicks[finalPriceOutcome2Index] = new OutcomeAndPriceTick(outcome2, outcome1.getPrice());
+        }
 
         List<OutcomeAndPriceTick> result = Arrays.stream(outcomeAndPriceTicks)
                 .filter(Objects::nonNull)

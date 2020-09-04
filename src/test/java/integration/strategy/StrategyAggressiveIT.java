@@ -24,4 +24,10 @@ public class StrategyAggressiveIT extends StrategyAnalysisIntegrationTests {
         Assert.assertEquals(15.25, moneyLineMarket.getMaximumProfit(), .01);
     }
 
+    @Test
+    public void runFullSimluation() throws Exception {
+        super.testStrategy("AGGRESSIVE");
+    }
+
+
 }
