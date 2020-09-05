@@ -81,7 +81,9 @@ public class NullAwareBeanUtilsBean extends BeanUtilsBean {
                 } else {
                     Outcome targetOutcome = targetMarket.getOutcomes().get(sourceOutcome.getId());
                     try {
+                        boolean bettingEnabled = sourceOutcome.isBettingEnabled();
                         copyProperties(targetOutcome, sourceOutcome);
+                        targetOutcome.setBettingEnabled(bettingEnabled); // need to preserve this property from source
                         copyProperties(targetOutcome.getPrice(), sourceOutcome.getPrice());
                     } catch (Exception e) {
                         e.printStackTrace();
