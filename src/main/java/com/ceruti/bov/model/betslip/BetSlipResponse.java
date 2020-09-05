@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -12,6 +14,7 @@ public class BetSlipResponse {
 
     private String key;
     private BetsResponse bets;
+    private List<BetResponseError> error;
 
     @JsonIgnore
     public String getStatus() {
@@ -35,10 +38,13 @@ public class BetSlipResponse {
     }
 
     private BetResponseError getError() {
-        if (getResponseDetail().getError() == null) {
-            return null;
+        if (getResponseDetail().getError() != null) {
+            return getResponseDetail().getError().get(0);
         }
-        return getResponseDetail().getError().get(0);
+        if (error != null) {
+            return error.get(0);
+        }
+        return null;
     }
 
     private BetResponseElDetail getResponseDetail() {

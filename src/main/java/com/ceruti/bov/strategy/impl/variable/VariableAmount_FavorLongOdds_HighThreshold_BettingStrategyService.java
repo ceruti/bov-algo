@@ -7,8 +7,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class VariableAmount_FavorLongOdds_HighThreshold_BettingStrategyService extends VariableAmount_FavorLongOdds_BettingStrategyService {
 
-    private static final double SOFTENING_FACTOR = 5.0; // TODO: change this? increasing will decrease typical wager amount
-
     private static final int LOWER_BOUNDARY_FOR_ADDITIONAL_BET = 150;
     private static final int UPPER_BOUNDARY_FOR_ADDITIONAL_BET = 250;
 

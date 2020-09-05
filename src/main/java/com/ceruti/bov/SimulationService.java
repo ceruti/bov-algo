@@ -28,15 +28,13 @@ public class SimulationService {
 
     public List<String> getSimulationids() { // sort by best first
         List<SimulationAggregateResult> simulationAggregations = this.mongoTemplate.findAll(SimulationAggregateResult.class, "simulationAggregations");
-        Map<String, Double> simulationToNetProfit = new HashMap<>();
+        Map<String, Double> simulationToMedianProfit = new HashMap<>();
         for (SimulationAggregateResult simulationAggregateResult : simulationAggregations) {
-            double netProfitForSimulation = simulationAggregateResult.getResults().get("ALL").getNetProfit();
-            simulationToNetProfit.put(simulationAggregateResult.getId(), netProfitForSimulation);
+            double simulationMedianProfit = simulationAggregateResult.getResults().get("ALL").getMedianProfit();
+            simulationToMedianProfit.put(simulationAggregateResult.getId(), simulationMedianProfit);
         }
-        List<String> collectionNames = this.mongoTemplate.getDb().getCollectionNames()
-                .stream().filter(collectionName -> collectionName.startsWith("bettingExecutionMetaResults")).collect(Collectors.toList());
-        List<String> sortedCollectionNames = simulationToNetProfit.keySet().stream()
-                .sorted((collectionNameA, collectionNameB) -> simulationToNetProfit.get(collectionNameB).compareTo(simulationToNetProfit.get(collectionNameA)))
+        List<String> sortedCollectionNames = simulationToMedianProfit.keySet().stream()
+                .sorted((collectionNameA, collectionNameB) -> simulationToMedianProfit.get(collectionNameB).compareTo(simulationToMedianProfit.get(collectionNameA)))
                 .collect(Collectors.toList());
         return sortedCollectionNames;
     }

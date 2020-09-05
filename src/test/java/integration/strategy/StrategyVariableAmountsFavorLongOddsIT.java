@@ -30,7 +30,7 @@ public class StrategyVariableAmountsFavorLongOddsIT extends StrategyAnalysisInte
 
     @Test
     public void runFullSimluation() throws Exception {
-        super.testStrategy("VARIABLE_FAVOR_LONG_ODDS");
+        super.testStrategy("VARIABLE_FAVOR_LONG_ODDS_K7");
     }
 
 }
