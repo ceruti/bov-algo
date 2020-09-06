@@ -1,13 +1,12 @@
 package com.ceruti.bov;
 
-import com.ceruti.bov.model.Event;
-import com.ceruti.bov.model.Market;
-import com.ceruti.bov.model.Outcome;
+import com.ceruti.bov.model.*;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class NullAwareBeanUtilsBean extends BeanUtilsBean {
@@ -83,9 +82,38 @@ public class NullAwareBeanUtilsBean extends BeanUtilsBean {
             outcome.setBettingEnabled(false);
         });
         if (existingMoneylineMarket.getBettingSession() != null) {
-            sourceMarket.setBettingSession(existingMoneylineMarket.getBettingSession());
+            boolean newBettingSessionInit = false;
+            for (BettingSessionPosition existingBettingPosition : existingMoneylineMarket.getBettingSession().getPositions().values()) {
+                if (existingBettingPosition.getBets() != null) {
+                    for (Bet bet : existingBettingPosition.getBets()) {
+                        String existingPositionOutcomeDescription = getOutcomeDescription(existingBettingPosition, existingMoneylineMarket);
+                        String existingPositionOpposingOutcomeDescription = getOpposingOutcomeDescription(existingBettingPosition, existingMoneylineMarket);
+                        String newOutcomeId = getCorrespondingOutcomeId(existingPositionOutcomeDescription, sourceMarket);
+                        String newOpposingOutcomeId = getCorrespondingOutcomeId(existingPositionOpposingOutcomeDescription, sourceMarket);
+                        if (!newBettingSessionInit) {
+                            sourceMarket.initBettingSession(bet, newOutcomeId, newOpposingOutcomeId);
+                            newBettingSessionInit = true;
+                        } else {
+                            sourceMarket.updateBettingSession(bet, newOutcomeId);
+                        }
+                    }
+                }
+            }
             existingMoneylineMarket.setBettingSession(null);
         }
+    }
+
+    private String getOpposingOutcomeDescription(BettingSessionPosition bettingSessionPosition, Market market) {
+        return market.getOutcomes().get(bettingSessionPosition.getOpposingOutcomeId()).getDescription();
+    }
+
+    private String getCorrespondingOutcomeId(String oldOutcomeDescription, Market newMarket) {
+        return newMarket.getOutcomes().values().stream().filter(newOutcome -> newOutcome.getDescription().equalsIgnoreCase(oldOutcomeDescription))
+                .findFirst().get().getId();
+    }
+
+    private String getOutcomeDescription(BettingSessionPosition bettingSessionPosition, Market market) {
+        return market.getOutcomes().get(bettingSessionPosition.getOutcomeId()).getDescription();
     }
 
     private boolean inactiveMoneyLineMarketAlreadyExists(Map<String, Market> markets) {

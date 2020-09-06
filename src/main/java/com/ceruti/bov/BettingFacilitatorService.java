@@ -12,7 +12,7 @@ import java.util.concurrent.Executors;
 @Component
 public class BettingFacilitatorService {
 
-    public static final double INIT_BET = 5.00; // TODO: update amounts?
+    public static final double INIT_BET = 20.00; // TODO: update amounts?
     public static final int DEFAULT_LOWER_BOUND_MONEYLINE_ENTRY = 100;
     public static final int DEFAULT_UPPER_BOUND_MONEYLINE_ENTRY = 200;
     public static final double VENDOR_MINIMUM_BET_AMOUNT = 0.50;
@@ -55,7 +55,7 @@ public class BettingFacilitatorService {
                 .findFirst().get();
         BettingSession bettingSession = market.getBettingSession();
         if (bettingSession == null) {
-            attemptInitBettingSession(event, market, outcome, opposingOutcome, price);
+            attemptInitBettingSession(event, market, outcome, opposingOutcome, price, amountInCents);
         } else {
             attemptPlaceBetUpdate(event, market, outcome, price, bettingSession, amountInCents / 100.0);
         }
@@ -72,17 +72,20 @@ public class BettingFacilitatorService {
         return (int) (Math.ceil(riskAmount * 100));
     }
 
-    private BettingSession attemptInitBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price) {
-        int amountInCents = toAmountInCents(INIT_BET);
+    private BettingSession attemptInitBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price, int amountInCents) {
         Bet bet = betPlacingService.initBet(price, amountInCents);
         market.initBettingSession(bet, outcome.getId(), opposingOutcome.getId());
         return submitBet(event, market, outcome, price, amountInCents, bet);
     }
 
+    private BettingSession attemptInitBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price) {
+        return attemptInitBettingSession(event, market, outcome, opposingOutcome, price, toAmountInCents(INIT_BET));
+    }
+
     private BettingSession submitBet(Event event, Market market, Outcome outcome, Price price, int amountInCents, Bet bet) {
-        template.convertAndSend("/topics/all", event); // broadcast that bet is in progress
+        template.convertAndSend("/topic/all", event); // broadcast that bet is in progress
         betPlacingService.submitBet(outcome.getId(), price, amountInCents, bet);
-        template.convertAndSend("/topics/all", event); // broadcast that bet is placed
+        template.convertAndSend("/topic/all", event); // broadcast that bet is placed
         printBettingSessionUpdate(event, market, outcome, price, market.getBettingSession(), bet);
         return market.getBettingSession();
     }
