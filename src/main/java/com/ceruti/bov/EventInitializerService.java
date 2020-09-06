@@ -49,7 +49,7 @@ public class EventInitializerService {
                 Long id = Long.parseLong(rawEvent.getString("id"));
                 Event parsedEvent = EventParseUtil.parseEvent(rawEvent);
                 if (eventBook.getBook().containsKey(id)) {
-                    eventBook.getBook().get(id).getRawEventSummaries().add(rawEvent);
+                    eventBook.getBook().get(id).getRawEventSummaries().add(rawEvent.toString());
                     eventBook.updateEvent(parsedEvent);
                 } else {
                     eventBook.addEvent(parsedEvent);

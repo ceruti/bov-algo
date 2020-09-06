@@ -38,7 +38,7 @@ public class Event {
     @JsonIgnore
     List<String> rawWireMessages = new ArrayList<>();
     @JsonIgnore
-    List<JSONObject> rawEventSummaries = new ArrayList<>();
+    List<String> rawEventSummaries = new ArrayList<>();
 
     public Event() {
 

@@ -52,6 +52,11 @@ public class NullAwareBeanUtilsBean extends BeanUtilsBean {
         } else if (toUpdate.getMarkets() != null && source.getMarkets() != null) {
             source.getMarkets().values().forEach(sourceMarket -> {
                 if (!toUpdate.getMarkets().containsKey(sourceMarket.getId())) {
+                    if (sourceMarket.getDescription().equalsIgnoreCase("Moneyline") &&
+                        sourceMarket.getDescriptionKey().equalsIgnoreCase("Head To Head") &&
+                        inactiveMoneyLineMarketAlreadyExists(toUpdate.getMarkets())) {
+                        markExistingMoneylineMarketInactive(toUpdate.getMarkets(), sourceMarket);
+                    }
                     toUpdate.getMarkets().put(sourceMarket.getId(), sourceMarket);
                 } else {
                     Market targetMarket = toUpdate.getMarkets().get(sourceMarket.getId());
@@ -65,6 +70,50 @@ public class NullAwareBeanUtilsBean extends BeanUtilsBean {
             });
         }
 
+    }
+
+    private void markExistingMoneylineMarketInactive(Map<String, Market> markets, Market sourceMarket) {
+        Market existingMoneylineMarket = markets.values().stream()
+                .filter(market -> market.getDescription().equalsIgnoreCase("Moneyline")
+                        && market.getDescriptionKey().equalsIgnoreCase("Head to head"))
+                .findFirst().get();
+        existingMoneylineMarket.setDescription("(INACTIVE) Moneyline");
+        existingMoneylineMarket.setDescriptionKey("(INACTIVE) Head to Head");
+        existingMoneylineMarket.getOutcomes().values().forEach(outcome -> {
+            outcome.setBettingEnabled(false);
+        });
+        if (existingMoneylineMarket.getBettingSession() != null) {
+            sourceMarket.setBettingSession(existingMoneylineMarket.getBettingSession());
+            existingMoneylineMarket.setBettingSession(null);
+        }
+    }
+
+    private boolean inactiveMoneyLineMarketAlreadyExists(Map<String, Market> markets) {
+        return markets.values().stream().anyMatch(market -> {
+           if (!market.getDescription().equalsIgnoreCase("Moneyline")
+                   || !market.getDescriptionKey().equalsIgnoreCase("Head to head")) {
+                return false;
+           }
+           if (market.getOutcomes().values().stream().noneMatch(outcome -> {
+               return outcome.getPreviousPrices() != null;
+           })) { // if there are no previous prices on the money line market, then it is probably inactive
+               return true;
+           }
+           return market.getOutcomes().values().stream().noneMatch(outcome -> {
+                // if there are previous prices on the money line market with a non-zero score,
+                // we're not going to set it inactive.
+                return outcome.getPreviousPrices().stream().anyMatch(price -> {
+                    try {
+                        return Integer.parseInt(price.getHomeScoreAtTimeOfPrice()) > 0 ||
+                                Integer.parseInt(price.getVisitorScoreAtTimeOfPrice()) > 0 ||
+                                price.getCurrentPeriodHomeScoreAtTimeOfPrice() > 0 ||
+                                price.getCurrentPeriodVisitorScoreAtTimeOfPrice() > 0;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                });
+           });
+        });
     }
 
     private void copyOutcomes(Market targetMarket, Map<String, Outcome> sourceOutcomes) {
