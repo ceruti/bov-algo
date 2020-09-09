@@ -233,6 +233,7 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
 
     private SimulationAggregateResult computeAggregation(String collectionName) throws Exception {
         SimulationAggregateResult simulationAggregateResult = new SimulationAggregateResult();
+        simulationAggregateResult.setCreated(new Date());
         simulationAggregateResult.setResults(new HashMap<>());
         simulationAggregateResult.setId(collectionName);
         MongoDatabase database = mongoClient.getDatabase("test");

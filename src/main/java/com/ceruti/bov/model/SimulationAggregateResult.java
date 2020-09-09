@@ -17,6 +17,6 @@ public class SimulationAggregateResult {
     String id;
     private Map<String, SimulationAggregateResultElement> results;
 
-    private Date created = new Date();
+    private Date created;
 
 }
