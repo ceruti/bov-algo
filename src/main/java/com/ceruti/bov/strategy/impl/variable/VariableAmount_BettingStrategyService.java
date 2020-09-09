@@ -11,6 +11,7 @@ public abstract class VariableAmount_BettingStrategyService extends BettingStrat
 
     private static final double SOFTENING_FACTOR = 5.0; // TODO: change this? increasing will decrease typical wager amount
     private static final int UPPER_BOUNDARY_FOR_ADDITIONAL_BET = 400; // need a higher bound than usual for variale strategies
+    public static final double ABSOLUTE_MINIMUM_PROFIT = -2.0 * INIT_BET;
 
     @Override
     public double getAdditionalBetRiskAmount(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession) {
@@ -22,7 +23,8 @@ public abstract class VariableAmount_BettingStrategyService extends BettingStrat
         BettingSession theoreticalBettingSession = getTheoreticalBettingSession(outcome, price, bettingSession, riskAmount);
         double currentMinimumProfit = bettingSession.getMinimumProfit();
         double theoreticalMinimumProfit = theoreticalBettingSession.getMinimumProfit();
-        if (theoreticalMinimumProfit >= 0 || theoreticalMinimumProfit >= currentMinimumProfit) {
+        double theoreticalMaximumProfit = theoreticalBettingSession.getMaximumProfit();
+        if (theoreticalMinimumProfit > ABSOLUTE_MINIMUM_PROFIT && theoreticalMaximumProfit > 0 && (outcome.isForceBettingEnabled() || (theoreticalMinimumProfit >= 0 || theoreticalMinimumProfit >= currentMinimumProfit))) {
             return riskAmount;
         }
         return 0.0;

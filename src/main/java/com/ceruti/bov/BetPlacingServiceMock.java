@@ -2,6 +2,7 @@ package com.ceruti.bov;
 
 import com.ceruti.bov.model.Bet;
 import com.ceruti.bov.model.Price;
+import com.ceruti.bov.util.ActiveProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
@@ -16,8 +17,12 @@ import java.util.Date;
 @Profile("!live")
 public class BetPlacingServiceMock implements BetPlacingService {
 
+    private ActiveProfileService activeProfileService;
+
     @Autowired
-    public BetPlacingServiceMock() {}
+    public BetPlacingServiceMock(ActiveProfileService activeProfileService) {
+        this.activeProfileService = activeProfileService;
+    }
 
     @Override
     public Bet initBet(Price price, int amountInCents) {
@@ -28,10 +33,12 @@ public class BetPlacingServiceMock implements BetPlacingService {
 
     @Override
     public Bet submitBet(String outcomeId, Price price, int amountInCents, Bet bet) {
-        try {
-            Thread.sleep(4000);
-        } catch (InterruptedException e) {
+        if (!activeProfileService.isTestMode()) {
+            try {
+                Thread.sleep(4000);
+            } catch (InterruptedException e) {
 
+            }
         }
         bet.markPlaced();
         return bet;

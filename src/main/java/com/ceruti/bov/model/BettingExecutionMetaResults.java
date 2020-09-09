@@ -1,5 +1,6 @@
 package com.ceruti.bov.model;
 
+import com.ceruti.bov.EventBook;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,6 +30,6 @@ public class BettingExecutionMetaResults {
         this.eventDescription = event.getDescription();
         Outcome winningOutcome = outcome1.getId().equals(winningOutcomeId) ? outcome1 : outcome2;
         this.winningOutcomeDescription = winningOutcome.getDescription();
-        this.sport = event.getSport();
+        this.sport = EventBook.getEquivalentKey(event.getSport());
     }
 }

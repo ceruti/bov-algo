@@ -50,12 +50,12 @@ import java.util.stream.Stream;
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class)
-@ActiveProfiles({"test", "strategy-none"})
+@ActiveProfiles({"test"/*, "strategy-none"*/})
 @AutoConfigureMockMvc
-public class StrategyAnalysisIntegrationTests {
+public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a more stable class
 
     public static final String SIMULATION_PREFIX = "BASIC-WITH-TIME-CONTROLS-ALLOW_TENNIS";
-    public static final int MINIMUM_PRICES_QUOTES = 100;
+    public static final int MINIMUM_PRICES_QUOTES = 75;
 
     public StrategyAnalysisIntegrationTests() {}
 
@@ -81,6 +81,15 @@ public class StrategyAnalysisIntegrationTests {
     MongoOperations mongoOperations;
 
     ExecutorService executorService = Executors.newFixedThreadPool(40);
+
+    @Test
+    public void testMoneylineMarketSwitchover() {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("_id").is(123456L));
+        Event event = mongoTemplate.findOne(query, Event.class, "event");
+        event.setId(7665224L);
+        mongoTemplate.save(event, "event");
+    }
 
 //    @Test
 //    @Ignore
@@ -123,6 +132,10 @@ public class StrategyAnalysisIntegrationTests {
         query.addCriteria(
             Criteria.where("version").in(allowedVersions)
         );
+        runSimulation(simulationName, query);
+    }
+
+    protected void runSimulation(String simulationName, Query query) throws Exception {
         List<Event> events = mongoTemplate.find(query, Event.class, "event");
         List<Callable<Boolean>> processChunks = chopped(events, 100)
                 .stream()

@@ -159,8 +159,11 @@ public class NullAwareBeanUtilsBean extends BeanUtilsBean {
                     Outcome targetOutcome = targetMarket.getOutcomes().get(sourceOutcome.getId());
                     try {
                         boolean bettingEnabled = targetOutcome.isBettingEnabled();
+                        boolean forceBettingEnabled = targetOutcome.isForceBettingEnabled();
                         copyProperties(targetOutcome, sourceOutcome);
-                        targetOutcome.setBettingEnabled(bettingEnabled); // need to preserve this property from target
+                        // need to preserve several properties from target
+                        targetOutcome.setBettingEnabled(bettingEnabled);
+                        targetOutcome.setForceBettingEnabled(forceBettingEnabled);
                         int currentPeriodVisitorScoreAtTimeOfPrice = targetOutcome.getPrice().getCurrentPeriodVisitorScoreAtTimeOfPrice();
                         int currentPeriodHomeScoreAtTimeOfPrice = targetOutcome.getPrice().getCurrentPeriodHomeScoreAtTimeOfPrice();
                         copyProperties(targetOutcome.getPrice(), sourceOutcome.getPrice());

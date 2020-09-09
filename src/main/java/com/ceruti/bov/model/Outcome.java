@@ -18,6 +18,7 @@ public class Outcome {
     private String opposingOutcomeId;
 
     private boolean bettingEnabled = true;
+    private boolean forceBettingEnabled = false;
 
     public void enableBetting() {
         this.bettingEnabled = true;

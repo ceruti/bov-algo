@@ -70,8 +70,9 @@ public class MessageController {
     @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/enable", method = RequestMethod.PUT)
     public void enableOutcomeForBetting(@PathVariable(value="eventId") Long eventId,
                                         @PathVariable(value="marketId") String marketId,
-                                        @PathVariable(value="outcomeId") String outcomeId) {
-        this.eventBook.enableOutcomeForBetting(eventId, marketId, outcomeId);
+                                        @PathVariable(value="outcomeId") String outcomeId,
+                                        @RequestParam(value="force", required = false, defaultValue = "false") boolean forceBetting) {
+        this.eventBook.enableOutcomeForBetting(eventId, marketId, outcomeId, forceBetting);
     }
 
     @RequestMapping(value = "/events/{eventId}/markets/{marketId}/outcomes/{outcomeId}/disable", method = RequestMethod.PUT)

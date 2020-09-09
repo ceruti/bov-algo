@@ -19,7 +19,7 @@ public class BasicBettingStrategyService extends BettingStrategyService {
         double currentMinimumProfit = bettingSession.getMinimumProfit();
         double theoreticalBettingSession1xMinimumProfit = theoreticalBettingSession1x.getMinimumProfit();
         double theoreticalBettingSession2xMinimumProfit = theoreticalBettingSession2x.getMinimumProfit();
-        if (currentMinimumProfit < BettingFacilitatorService.INIT_BET) { // TODO: change this?
+        if (outcome.isForceBettingEnabled() || currentMinimumProfit < BettingFacilitatorService.INIT_BET) { // TODO: change this?
             // not making money yet -- we need to bet in the "opposite direction"
             if (theoreticalBettingSession2xMinimumProfit >= currentMinimumProfit) {
                 return BettingFacilitatorService.INIT_BET * 2;

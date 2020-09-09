@@ -144,10 +144,14 @@ public class BettingFacilitatorService {
             }
             BettingSession bettingSession = market.getBettingSession();
             // TODO: figure out startedRecently() flag behavior
-            if (bettingSession == null /*&& event.startedRecently()*/ && !eventBook.isOnInitiateBettingSessionBlacklist(event) && price.getAmerican() > DEFAULT_LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < DEFAULT_UPPER_BOUND_MONEYLINE_ENTRY) {
+            if (bettingSession == null /*&& event.startedRecently()*/
+                    && (outcome.isForceBettingEnabled() ||
+                        (!eventBook.isOnInitiateBettingSessionBlacklist(event) && price.getAmerican() > DEFAULT_LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < DEFAULT_UPPER_BOUND_MONEYLINE_ENTRY)
+                    )
+            ) {
                 attemptInitBettingSession(event, market, outcome, opposingOutcome, price);
             }
-            else if (bettingSession != null && bettingStrategyService.isWithinBoundariesForAdditionalBet(price.getAmerican())) {
+            else if (bettingSession != null && (bettingStrategyService.isWithinBoundariesForAdditionalBet(price.getAmerican()) || outcome.isForceBettingEnabled())) {
                 double additionalBetRiskAmount = bettingStrategyService.getAdditionalBetRiskAmount(event, market, outcome, price, bettingSession);
                 if (additionalBetRiskAmount > VENDOR_MINIMUM_BET_AMOUNT) {
                     attemptPlaceBetUpdate(event, market, outcome, price, bettingSession, additionalBetRiskAmount);
