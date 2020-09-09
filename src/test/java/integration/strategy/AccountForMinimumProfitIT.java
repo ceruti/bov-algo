@@ -6,12 +6,12 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles({"test", "strategy-high_softening_geometric_v4"})
-public class StrategyHighSofteningGeometricV4IT extends StrategyAnalysisIntegrationTests {
+@ActiveProfiles({"test", "strategy-account-for-minimum-profit"})
+public class AccountForMinimumProfitIT extends StrategyAnalysisIntegrationTests {
 
     @Test
     public void runFullSimluation() throws Exception {
-            super.testStrategy("HIGH_SOFTENING_GEOMETRIC_V4_FULL_50_INIT");
+            super.testStrategy("ACCOUNT_FOR_MINIMUM_PROFIT_FULL_v2");
     }
 
     @Test

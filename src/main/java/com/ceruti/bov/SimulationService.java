@@ -27,7 +27,10 @@ public class SimulationService {
     }
 
     public List<String> getSimulationids() { // sort by best first
-        List<SimulationAggregateResult> simulationAggregations = this.mongoTemplate.findAll(SimulationAggregateResult.class, "simulationAggregations");
+        List<SimulationAggregateResult> simulationAggregations = this.mongoTemplate.findAll(SimulationAggregateResult.class, "simulationAggregations")
+                .stream()
+                .filter(result -> result.getResults().get("ALL").getEventsBetOn() > 100)
+                .collect(Collectors.toList());
         Map<String, Double> simulationToMedianProfit = new HashMap<>();
         for (SimulationAggregateResult simulationAggregateResult : simulationAggregations) {
             double simulationMedianProfit = simulationAggregateResult.getResults().get("ALL").getMedianProfit();
