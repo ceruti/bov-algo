@@ -29,7 +29,7 @@ public class AccountForCurrentMinimumProfitBettingStrategyService extends Variab
         double theoreticalMinimumProfit = theoreticalBettingSession.getMinimumProfit();
         double theoreticalMaximumProfit = theoreticalBettingSession.getMaximumProfit();
         boolean isMoreProfitableOutcome = bettingSession.getMoreProfitableOutcomeId().equalsIgnoreCase(outcome.getId());
-        if (currentMinimumProfit < 0 && (theoreticalMinimumProfit > currentMinimumProfit || price.getAmerican() > 0)) {
+        if (currentMinimumProfit < 0 && theoreticalMinimumProfit < 0 && (theoreticalMinimumProfit > currentMinimumProfit || price.getAmerican() > 0)) {
             double penalizedRiskAmount = riskAmount * redZonePenalty( price.getAmerican() > 0, isMoreProfitableOutcome, currentMinimumProfit);
             return penalizedRiskAmount;
         } else if (theoreticalMinimumProfit > ABSOLUTE_MINIMUM_PROFIT && theoreticalMaximumProfit > 0 && (outcome.isForceBettingEnabled() || improvesMinimumProfit(currentMinimumProfit, theoreticalMinimumProfit))) {
