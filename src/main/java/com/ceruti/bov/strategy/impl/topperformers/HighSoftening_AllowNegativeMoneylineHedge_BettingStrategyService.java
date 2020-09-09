@@ -35,7 +35,7 @@ public class HighSoftening_AllowNegativeMoneylineHedge_BettingStrategyService ex
     }
 
     // TODO: support forceBetting()?
-    protected static double getAdditionalBetRiskAmount(Outcome outcome, Price price, BettingSession bettingSession, double riskAmount) {
+    protected double getAdditionalBetRiskAmount(Outcome outcome, Price price, BettingSession bettingSession, double riskAmount) {
         BettingSession theoreticalBettingSession = getTheoreticalBettingSession(outcome, price, bettingSession, riskAmount);
         double currentMinimumProfit = bettingSession.getMinimumProfit();
         double currentMaximumProfit = bettingSession.getMaximumProfit();
