@@ -80,7 +80,12 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
     @Autowired
     MongoOperations mongoOperations;
 
+    @Autowired
+    SimulatedEventRepository simulatedEventRepository;
+
     ExecutorService executorService = Executors.newFixedThreadPool(40);
+
+    private Set<Long> simulatedEventIds = new HashSet<>();
 
     @Test
     public void testMoneylineMarketSwitchover() {
@@ -146,6 +151,12 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
         mongoTemplate.getCollection("bettingExecutionMetaResults").rename(collectionName);
         SimulationAggregateResult simulationAggregateResult = computeAggregation(collectionName);
         mongoTemplate.save(simulationAggregateResult, "simulationAggregations");
+        List<SimulatedEvent> simulatedEvents = events.stream().filter(event -> simulatedEventIds.contains(event.getId()))
+                .map(SimulatedEvent::new)
+                .collect(Collectors.toList());
+        simulatedEventRepository.deleteAll();
+        simulatedEventRepository.save(simulatedEvents);
+        System.out.println("done");
     }
 
     private Callable<Boolean> simulateCallable(List<Event> chunk) {
@@ -180,6 +191,7 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
                                     && previousPrices2.size() > MINIMUM_PRICES_QUOTES) {
                                     BettingExecutionMetaResults bettingExecutionMetaResults = simulateBettingStrategy(event, market, outcome1, outcome2, previousPrices1, previousPrices2);
                                     if (bettingExecutionMetaResults != null) {
+                                        simulatedEventIds.add(event.getId());
                                         bettingExecutionMetaResultsBuffer.add(bettingExecutionMetaResults);
                                     }
                                     if (bettingExecutionMetaResultsBuffer.size() > 100) {

@@ -1,6 +1,7 @@
 package com.ceruti.bov;
 
 import com.ceruti.bov.model.BettingExecutionMetaResults;
+import com.ceruti.bov.model.SimulatedEvent;
 import com.ceruti.bov.model.SimulationAggregateResult;
 import com.ceruti.bov.model.SimulationPage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +20,13 @@ import java.util.stream.Collectors;
 @Component
 public class SimulationService {
 
+    private final SimulatedEventRepository simulatedEventRepository;
     private MongoTemplate mongoTemplate;
 
     @Autowired
-    public SimulationService(MongoTemplate mongoTemplate) {
+    public SimulationService(MongoTemplate mongoTemplate, SimulatedEventRepository simulatedEventRepository) {
         this.mongoTemplate = mongoTemplate;
+        this.simulatedEventRepository = simulatedEventRepository;
     }
 
     public List<String> getSimulationids() { // sort by best first
@@ -69,5 +72,11 @@ public class SimulationService {
         Query query = new Query();
         query.addCriteria(Criteria.where("id").is(simulationId));
         return this.mongoTemplate.findOne(query, SimulationAggregateResult.class, "simulationAggregations");
+    }
+
+    public SimulatedEvent getSimulatedEvent(Long simulatedEventId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("_id").is(simulatedEventId));
+        return this.mongoTemplate.findOne(query, SimulatedEvent.class, "simulatedEvent");
     }
 }

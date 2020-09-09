@@ -45,6 +45,11 @@ public class MessageController {
         return this.eventBook.getLiveEvents();
     }
 
+    @RequestMapping("/simulated-events/{simulatedEventId}")
+    public SimulatedEvent getSimulatedEvent(@PathVariable(value="simulatedEventId") Long simulatedEventId) {
+        return this.simulationService.getSimulatedEvent(simulatedEventId);
+    }
+
     // NOTE: these requests are served over HTTPS instead of WebSocket because WebSockets are not as reliable and these commands are critical, even if latency is higher
 
     @RequestMapping(value = "/events/{eventId}/enable", method = RequestMethod.PUT)

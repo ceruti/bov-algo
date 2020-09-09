@@ -16,24 +16,24 @@ import java.util.Map;
 public class Event {
 
     @Id
-    private long id;
-    private String homeScore;
-    private String visitorScore;
-    private int currentPeriodHomeScore;
-    private int currentPeriodVisitorScore;
-//    private Date vendorLastUpdated;
-    private Clock clock;
-    private String sport;
-    private Map<String, Competitor> competitors;
-    private String description;
-    private String notes;
-    private boolean live;
-    private int competitionId;
-    private Map<String, Market> markets;
-    private String gameStatus;
-    private Date lastUpdated;
-    private Date createdAt;
-    private String version = "v2.4";
+    protected long id;
+    protected String homeScore;
+    protected String visitorScore;
+    protected int currentPeriodHomeScore;
+    protected int currentPeriodVisitorScore;
+//    protected Date vendorLastUpdated;
+    protected Clock clock;
+    protected String sport;
+    protected Map<String, Competitor> competitors;
+    protected String description;
+    protected String notes;
+    protected boolean live;
+    protected int competitionId;
+    protected Map<String, Market> markets;
+    protected String gameStatus;
+    protected Date lastUpdated;
+    protected Date createdAt;
+    protected String version = "v2.4";
 
     @JsonIgnore
     List<String> rawWireMessages = new ArrayList<>();
@@ -65,7 +65,7 @@ public class Event {
     }
 
     // note: this is just on initialization: can be flipped in the UI in a LIVE setting
-    private boolean bettingEnabled = System.getProperty("spring.profiles.active") != null
+    protected boolean bettingEnabled = System.getProperty("spring.profiles.active") != null
             && (System.getProperty("spring.profiles.active").contains("test") || System.getProperty("spring.profiles.active").contains("enableAutoBetting"));
 
     public void enableBetting() {
