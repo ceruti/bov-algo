@@ -1,6 +1,7 @@
 package com.ceruti.bov;
 
 import com.ceruti.bov.model.Event;
+import com.ceruti.bov.model.Outcome;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
