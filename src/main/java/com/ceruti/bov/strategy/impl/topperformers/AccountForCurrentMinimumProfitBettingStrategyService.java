@@ -23,7 +23,7 @@ public class AccountForCurrentMinimumProfitBettingStrategyService extends Variab
         return getAdditionalBetRiskAmount(outcome, price, bettingSession, riskAmount);
     }
 
-    protected static double getAdditionalBetRiskAmount(Outcome outcome, Price price, BettingSession bettingSession, double riskAmount) {
+    protected double getAdditionalBetRiskAmount(Outcome outcome, Price price, BettingSession bettingSession, double riskAmount) {
         BettingSession theoreticalBettingSession = getTheoreticalBettingSession(outcome, price, bettingSession, riskAmount);
         double currentMinimumProfit = bettingSession.getMinimumProfit();
         double theoreticalMinimumProfit = theoreticalBettingSession.getMinimumProfit();
