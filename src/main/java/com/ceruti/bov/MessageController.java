@@ -88,8 +88,8 @@ public class MessageController {
     }
 
     @RequestMapping(value = "/simulations", method = RequestMethod.GET)
-    public List<String> listSimulations() {
-        return this.simulationService.getSimulationids();
+    public List<SimulationAggregateResult> listSimulations() {
+        return this.simulationService.getSimulations();
     }
 
     @RequestMapping(value = "/simulations/{simulationId}", method = RequestMethod.GET)

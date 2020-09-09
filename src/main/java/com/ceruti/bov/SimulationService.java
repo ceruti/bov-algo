@@ -29,20 +29,16 @@ public class SimulationService {
         this.simulatedEventRepository = simulatedEventRepository;
     }
 
-    public List<String> getSimulationids() { // sort by best first
-        List<SimulationAggregateResult> simulationAggregations = this.mongoTemplate.findAll(SimulationAggregateResult.class, "simulationAggregations")
+    public List<SimulationAggregateResult> getSimulations() { // sort by best first
+        return this.mongoTemplate.findAll(SimulationAggregateResult.class, "simulationAggregations")
                 .stream()
                 .filter(result -> result.getResults().get("ALL").getEventsBetOn() > 100)
+                .sorted((aggA, aggB) -> Double.compare(getMedianProfit(aggB), getMedianProfit(aggA)))
                 .collect(Collectors.toList());
-        Map<String, Double> simulationToMedianProfit = new HashMap<>();
-        for (SimulationAggregateResult simulationAggregateResult : simulationAggregations) {
-            double simulationMedianProfit = simulationAggregateResult.getResults().get("ALL").getMedianProfit();
-            simulationToMedianProfit.put(simulationAggregateResult.getId(), simulationMedianProfit);
-        }
-        List<String> sortedCollectionNames = simulationToMedianProfit.keySet().stream()
-                .sorted((collectionNameA, collectionNameB) -> simulationToMedianProfit.get(collectionNameB).compareTo(simulationToMedianProfit.get(collectionNameA)))
-                .collect(Collectors.toList());
-        return sortedCollectionNames;
+    }
+
+    private double getMedianProfit(SimulationAggregateResult simulationAggregateResult) {
+        return simulationAggregateResult.getResults().get("ALL").getMedianProfit();
     }
 
     // TODO: add record limit
