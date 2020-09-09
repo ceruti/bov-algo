@@ -137,11 +137,15 @@ public class EventBook {
         this.book.get(eventId).disableBetting();
     }
 
-    public void enableOutcomeForBetting(Long eventId, String marketId, String outcomeId) {
-        this.book.get(eventId).getMarkets().get(marketId).getOutcomes().get(outcomeId).enableBetting();
+    public void enableOutcomeForBetting(Long eventId, String marketId, String outcomeId, boolean forceBetting) {
+        Outcome outcome = this.book.get(eventId).getMarkets().get(marketId).getOutcomes().get(outcomeId);
+        outcome.enableBetting();
+        outcome.setForceBettingEnabled(forceBetting);
     }
 
     public void disableOutcomeForBetting(Long eventId, String marketId, String outcomeId) {
-        this.book.get(eventId).getMarkets().get(marketId).getOutcomes().get(outcomeId).disableBetting();
+        Outcome outcome = this.book.get(eventId).getMarkets().get(marketId).getOutcomes().get(outcomeId);
+        outcome.disableBetting();
+        outcome.setForceBettingEnabled(false);
     }
 }
