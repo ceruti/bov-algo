@@ -35,10 +35,14 @@ public class AccountForCurrentMinimumProfitBettingStrategyService extends Variab
         if (currentMinimumProfit < 0 && (theoreticalMinimumProfit > currentMinimumProfit || price.getAmerican() > 0)) {
             double penalizedRiskAmount = riskAmount * redZonePenalty( price.getAmerican() > 0, isMoreProfitableOutcome, currentMinimumProfit);
             return penalizedRiskAmount;
-        } else if (theoreticalMinimumProfit > ABSOLUTE_MINIMUM_PROFIT && theoreticalMaximumProfit > 0 && (outcome.isForceBettingEnabled() || (theoreticalMinimumProfit >= 0 || theoreticalMinimumProfit >= currentMinimumProfit))) {
+        } else if (theoreticalMinimumProfit > ABSOLUTE_MINIMUM_PROFIT && theoreticalMaximumProfit > 0 && (outcome.isForceBettingEnabled() || improvesMinimumProfit(currentMinimumProfit, theoreticalMinimumProfit))) {
             return riskAmount;
         }
         return 0.0;
+    }
+
+    protected boolean improvesMinimumProfit(double currentMinimumProfit, double theoreticalMinimumProfit) {
+        return theoreticalMinimumProfit >= 0 || theoreticalMinimumProfit >= currentMinimumProfit;
     }
 
     private static double redZonePenalty(boolean positiveOdds, boolean isMoreProfitableOutcome, double currentMinimumProfit) {
