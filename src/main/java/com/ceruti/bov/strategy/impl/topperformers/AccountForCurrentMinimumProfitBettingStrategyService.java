@@ -29,9 +29,6 @@ public class AccountForCurrentMinimumProfitBettingStrategyService extends Variab
         double theoreticalMinimumProfit = theoreticalBettingSession.getMinimumProfit();
         double theoreticalMaximumProfit = theoreticalBettingSession.getMaximumProfit();
         boolean isMoreProfitableOutcome = bettingSession.getMoreProfitableOutcomeId().equalsIgnoreCase(outcome.getId());
-        if (!isMoreProfitableOutcome) {
-            System.out.println("here");
-        }
         if (currentMinimumProfit < 0 && (theoreticalMinimumProfit > currentMinimumProfit || price.getAmerican() > 0)) {
             double penalizedRiskAmount = riskAmount * redZonePenalty( price.getAmerican() > 0, isMoreProfitableOutcome, currentMinimumProfit);
             return penalizedRiskAmount;
@@ -46,9 +43,6 @@ public class AccountForCurrentMinimumProfitBettingStrategyService extends Variab
     }
 
     private static double redZonePenalty(boolean positiveOdds, boolean isMoreProfitableOutcome, double currentMinimumProfit) {
-        if (!isMoreProfitableOutcome) {
-            System.out.println("here");
-        }
         double minimumProfitRatio = Math.abs(currentMinimumProfit / INIT_BET);
         if (!isMoreProfitableOutcome && positiveOdds) {
             return 1.0;

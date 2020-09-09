@@ -422,9 +422,12 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
     }
 
     private BettingExecutionMetaResults executeBettingStrategy(Event event, Market market, Outcome outcome1, Outcome outcome2, List<OutcomeAndPriceTick> outcomeAndPriceTicks, String winningOutcomeId) {
+        if (outcomeAndPriceTicks.size() < 150) {
+            return null;
+        }
         BettingExecutionMetaResults bettingExecutionMetaResults = new BettingExecutionMetaResults(event, market, outcome1, outcome2, winningOutcomeId);
         boolean initialUnderdogSet = false;
-        String lastFavoriteOutcomeId = outcomeAndPriceTicks.get(0).outcome.getId();
+        String lastLongOddsOutcomeId = outcomeAndPriceTicks.get(0).outcome.getId();
         outcome1.setPrice(null);
         outcome2.setPrice(null);
         for (int i = 0; i < outcomeAndPriceTicks.size(); i++) {
@@ -437,12 +440,12 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
                 outcome2.setPrice(currentTick.price);
             }
             updateClockAndScore(event, currentTick);
-            initialUnderdogSet = analyzeTick(winningOutcomeId, bettingExecutionMetaResults, initialUnderdogSet, lastFavoriteOutcomeId, currentTick);
+            initialUnderdogSet = analyzeTick(winningOutcomeId, bettingExecutionMetaResults, initialUnderdogSet, lastLongOddsOutcomeId, currentTick);
             Outcome opposingOutcome = currentTick.outcome.getId().equals(outcome1.getId()) ? outcome2 : outcome1;
             market.getOutcomes().put(currentTick.outcome.getId(), currentTick.outcome);
             bettingFacilitatorService.updateBettingSession(event, market, currentTick.outcome, opposingOutcome, currentTick.price);
-            if (currentTick.price.getAmerican() < 100) {
-                lastFavoriteOutcomeId = currentTick.outcome.getId();
+            if (currentTick.price.getAmerican() > 100) {
+                lastLongOddsOutcomeId = currentTick.outcome.getId();
             }
         }
         if (market.getBettingSession() != null) {
@@ -488,9 +491,9 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
                 .toArray();
     }
 
-    private boolean analyzeTick(String winningOutcomeId, BettingExecutionMetaResults bettingExecutionMetaResults, boolean initialUnderdogSet, String lastFavoriteOutcomeId, OutcomeAndPriceTick currentTick) {
-        if (currentTick.price.getAmerican() < 100
-                && !currentTick.outcome.getId().equals(lastFavoriteOutcomeId)) {
+    private boolean analyzeTick(String winningOutcomeId, BettingExecutionMetaResults bettingExecutionMetaResults, boolean initialUnderdogSet, String lastLongOddsOutcomeId, OutcomeAndPriceTick currentTick) {
+        if (currentTick.price.getAmerican() > 100
+                && !currentTick.outcome.getId().equals(lastLongOddsOutcomeId)) {
             bettingExecutionMetaResults.favoriteReversals++;
         }
         if (currentTick.outcome.getId().equals(winningOutcomeId)) {
