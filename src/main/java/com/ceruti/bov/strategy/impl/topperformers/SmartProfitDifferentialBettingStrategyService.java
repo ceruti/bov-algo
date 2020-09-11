@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class SmartProfitDifferentialBettingStrategyService extends VariableAmount_BettingStrategyService {
 
-    public static final double DIFFERENTIAL_PENALTY_GEOMETRIC_FACTOR = 1.8;
+    public static final double LESS_PROFITABLE_GEOMETRIC_PENALTY_FACTOR = 1.7;
+    public static final double MORE_PROFITABLE_GEOMETRIC_PENALTY_FACTOR = 1.7;
     public static double K_MORE_PROFITABLE_OUTCOME = -1.50; // TODO tweak?
     public static double K_LESS_PROFITABLE_OUTCOME = -1.50; // TODO: tweak?
     public static double BASE_ADDITIONAL_BET = .20; // TODO: make this a function of INIT_BET?
@@ -48,10 +49,10 @@ public class SmartProfitDifferentialBettingStrategyService extends VariableAmoun
     private static double differentialPenalty(double differential, double exponentialDecayBase, boolean penalizeHighDifferential) {
         double profitRatio;
         if (penalizeHighDifferential) {
-            profitRatio =  Math.pow(differential, DIFFERENTIAL_PENALTY_GEOMETRIC_FACTOR)
+            profitRatio =  Math.pow(differential, MORE_PROFITABLE_GEOMETRIC_PENALTY_FACTOR)
                     / (DIFFERENTIAL_PENALTY_LINEAR_FACTOR);
         } else {
-            profitRatio = DIFFERENTIAL_BONUS_LINEAR_FACTOR / Math.pow(differential, DIFFERENTIAL_PENALTY_GEOMETRIC_FACTOR);
+            profitRatio = DIFFERENTIAL_BONUS_LINEAR_FACTOR / Math.pow(differential, LESS_PROFITABLE_GEOMETRIC_PENALTY_FACTOR);
         }
         return Math.pow(Math.E, exponentialDecayBase * profitRatio);
     }
