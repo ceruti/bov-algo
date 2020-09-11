@@ -10,7 +10,9 @@ import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 public abstract class VariableAmount_BettingStrategyService extends BettingStrategyService {
 
     private static final double SOFTENING_FACTOR = 5.0; // TODO: change this? increasing will decrease typical wager amount
-    private static final int UPPER_BOUNDARY_FOR_ADDITIONAL_BET = 400; // need a higher bound than usual for variale strategies
+    private static final int UPPER_BOUNDARY_FOR_ADDITIONAL_BET = 2000; // need a higher bound than usual for variale strategies
+    private static final int EFFECTIVE_ODDS_MAX = 400;
+    private static final double BASE_BET_AMOUNT = 20.0;
     public static final double ABSOLUTE_MINIMUM_PROFIT = -2.0 * INIT_BET;
 
     @Override
@@ -32,7 +34,7 @@ public abstract class VariableAmount_BettingStrategyService extends BettingStrat
 
     protected static double winMultiplier(Price price) {
         if (price.getAmerican() > 0) {
-            return price.getAmerican() / 100.0;
+            return Math.min(price.getAmerican(), EFFECTIVE_ODDS_MAX) / 100.0;
         }
         return Math.abs(100.0 / price.getAmerican());
     }

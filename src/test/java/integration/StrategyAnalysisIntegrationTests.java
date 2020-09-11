@@ -375,6 +375,9 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
         }
         market.setBettingSession(null);
         event.setBettingEnabled(true);
+        for (Outcome outcome : market.getOutcomes().values()) {
+            outcome.setBettingEnabled(true);
+        }
         BettingExecutionMetaResults bettingExecutionMetaResults = executeBettingStrategy(event, market, outcome1, outcome2, outcomeAndPriceTicks, winningOutcomeId);
         if (market.getBettingSession() == null) {
             // bet was never made
