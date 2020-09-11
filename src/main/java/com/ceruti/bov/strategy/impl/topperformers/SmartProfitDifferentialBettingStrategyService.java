@@ -9,12 +9,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class SmartProfitDifferentialBettingStrategyService extends VariableAmount_BettingStrategyService {
 
-    public static final double DIFFERENTIAL_PENALTY_GEOMETRIC_FACTOR = 1.3;
+    public static final double DIFFERENTIAL_PENALTY_GEOMETRIC_FACTOR = 1.8;
     public static double K_MORE_PROFITABLE_OUTCOME = -1.50; // TODO tweak?
     public static double K_LESS_PROFITABLE_OUTCOME = -1.50; // TODO: tweak?
     public static double BASE_ADDITIONAL_BET = .20; // TODO: make this a function of INIT_BET?
-    public static double GEOMETRIC_BET_FACTOR = 2.5; // TODO: tweak?
-    public static int DIFFERENTIAL_PENALTY_LINEAR_FACTOR = 1200; // TODO: tweak?
+    public static double GEOMETRIC_BET_FACTOR = 3.2; // TODO: tweak?
+    public static int DIFFERENTIAL_PENALTY_LINEAR_FACTOR = 6000; // TODO: tweak?
+    public static final double DIFFERENTIAL_BONUS_LINEAR_FACTOR = DIFFERENTIAL_PENALTY_LINEAR_FACTOR / 8.0; // TODO: tweak?
 
     @Override
     public double getAdditionalBetRiskAmount(Event event, Market market, Outcome outcome, Price price, BettingSession bettingSession) {
@@ -50,7 +51,7 @@ public class SmartProfitDifferentialBettingStrategyService extends VariableAmoun
             profitRatio =  Math.pow(differential, DIFFERENTIAL_PENALTY_GEOMETRIC_FACTOR)
                     / (DIFFERENTIAL_PENALTY_LINEAR_FACTOR);
         } else {
-            profitRatio = (DIFFERENTIAL_PENALTY_LINEAR_FACTOR / 10.0) / Math.pow(differential, DIFFERENTIAL_PENALTY_GEOMETRIC_FACTOR);
+            profitRatio = DIFFERENTIAL_BONUS_LINEAR_FACTOR / Math.pow(differential, DIFFERENTIAL_PENALTY_GEOMETRIC_FACTOR);
         }
         return Math.pow(Math.E, exponentialDecayBase * profitRatio);
     }
