@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class SmartProfitDifferentialBettingStrategyService extends VariableAmount_BettingStrategyService {
 
-    public static final double LESS_PROFITABLE_GEOMETRIC_PENALTY_FACTOR = 1.7;
-    public static final double MORE_PROFITABLE_GEOMETRIC_PENALTY_FACTOR = 1.7;
+    public static final double LESS_PROFITABLE_GEOMETRIC_PENALTY_FACTOR = 1.7; // 1.7 seems to be a good number here
+    public static final double MORE_PROFITABLE_GEOMETRIC_PENALTY_FACTOR = 1.8; // this should be between 1.7 and 1.9 --> higher is more "conservative"
     public static double K_MORE_PROFITABLE_OUTCOME = -1.50; // TODO tweak?
     public static double K_LESS_PROFITABLE_OUTCOME = -1.50; // TODO: tweak?
     public static double BASE_ADDITIONAL_BET = .20; // TODO: make this a function of INIT_BET?
@@ -27,9 +27,6 @@ public class SmartProfitDifferentialBettingStrategyService extends VariableAmoun
     protected double getAdditionalBetRiskAmount(Outcome outcome, Price price, BettingSession bettingSession, double riskAmount) {
         if (price.getAmerican() < 0) {
             return 0.0;
-        }
-        if (price.getAmerican() == 165) {
-            System.out.println("here");
         }
         double currentMinimumProfit = bettingSession.getMinimumProfit();
         double currentMaximumProfit = bettingSession.getMaximumProfit();
