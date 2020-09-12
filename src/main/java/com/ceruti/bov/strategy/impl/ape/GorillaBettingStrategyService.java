@@ -1,4 +1,4 @@
-package com.ceruti.bov.strategy.impl.topperformers;
+package com.ceruti.bov.strategy.impl.ape;
 
 import com.ceruti.bov.model.*;
 import com.ceruti.bov.strategy.impl.variable.VariableAmount_BettingStrategyService;
@@ -7,9 +7,9 @@ import org.springframework.stereotype.Component;
 
 import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 
-@Profile("strategy_smart-profit-differential")
+@Profile("strategy_gorilla")
 @Component
-public class SmartProfitDifferentialBettingStrategyService extends VariableAmount_BettingStrategyService {
+public class GorillaBettingStrategyService extends VariableAmount_BettingStrategyService {
 
     public static final double LESS_PROFITABLE_GEOMETRIC_PENALTY_FACTOR = 1.7; // 1.7 seems to be a good number here
     public static final double MORE_PROFITABLE_GEOMETRIC_PENALTY_FACTOR = 1.8; // this should be between 1.7 and 1.9 --> higher is more "conservative"

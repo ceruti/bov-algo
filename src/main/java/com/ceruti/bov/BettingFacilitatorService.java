@@ -13,10 +13,11 @@ import java.util.concurrent.Executors;
 @Component
 public class BettingFacilitatorService {
 
-    public static final double INIT_BET = 20.00; // TODO: update amounts?
-    public static final int DEFAULT_LOWER_BOUND_MONEYLINE_ENTRY = 100;
-    public static final int DEFAULT_UPPER_BOUND_MONEYLINE_ENTRY = 200;
+    public static int FAVORITE_INITIAL_BET_THRESHOLD = -200;
+    public static int UNDERDOG_INITIAL_BET_THRESHOLD = 200;
+    public static double INIT_BET = 20.00; // TODO: update amounts?
     public static final double VENDOR_MINIMUM_BET_AMOUNT = 0.50;
+    private boolean favoriteFirst = false;
 
     private SharedExecutorService sharedExecutorService;
     private BettingStrategyService bettingStrategyService;
@@ -165,10 +166,7 @@ public class BettingFacilitatorService {
             // TODO: figure out startedRecently() flag behavior
             if (bettingSession == null /*&& event.startedRecently()*/
                     && (outcome.isForceBettingEnabled() ||
-                        (!eventBook.isOnInitiateBettingSessionBlacklist(event)
-                                && price.getAmerican() < 0 && price.getAmerican() >= -250 // favorite first
-//                            && price.getAmerican() > 0 && price.getAmerican() < 300 // underdog first
-                        )
+                        (!eventBook.isOnInitiateBettingSessionBlacklist(event) && withinInitBetThreshold(price))
                     )
             ) {
                 attemptInitBettingSession(event, market, outcome, opposingOutcome, price);
@@ -182,8 +180,28 @@ public class BettingFacilitatorService {
         }
     }
 
+    private boolean withinInitBetThreshold(Price price) {
+        return favoriteFirst() ? withinFavoriteInitBetThreshold(price) : withinUnderdogInitBetThreshold(price);
+    }
+
+    private boolean favoriteFirst() {
+        return activeProfileService.profileIsActive("favorite_first") || favoriteFirst;
+    }
+
+    private boolean withinUnderdogInitBetThreshold(Price price) {
+        return price.getAmerican() > 0 && price.getAmerican() < UNDERDOG_INITIAL_BET_THRESHOLD;
+    }
+
+    private boolean withinFavoriteInitBetThreshold(Price price) {
+        return price.getAmerican() < 0 && price.getAmerican() >= FAVORITE_INITIAL_BET_THRESHOLD;
+    }
+
     protected boolean endingSoon(Event event) { // only turn off auto-betting in simulation mode. For live betting... just pay attention to the game clock
         return activeProfileService.isTestMode() && event.isEndingSoon();
+    }
+
+    public void setFavoriteFirst(boolean favoriteFirst) {
+        this.favoriteFirst = favoriteFirst;
     }
 
 }

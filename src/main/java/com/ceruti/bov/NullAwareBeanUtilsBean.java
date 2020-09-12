@@ -37,6 +37,81 @@ public class NullAwareBeanUtilsBean extends BeanUtilsBean {
         }
     }
 
+    public Event cloneEvent(Event source) throws Exception {
+        Event newEvent = new Event();
+        this.copyProperties(newEvent, source);
+        if (source.getClock() != null) {
+            newEvent.setClock(source.getClock().clone());
+        }
+        if (source.getCompetitors() != null) {
+            cloneCompetitors(source, newEvent);
+        }
+        if (source.getMarkets() != null) {
+            cloneMarkets(source, newEvent);
+        }
+        if (source.getRawWireMessages() != null) {
+            this.cloneRawWireMessages(source, newEvent);
+        }
+        if (source.getRawEventSummaries() != null) {
+            this.cloneRawEventSummaries(source, newEvent);
+        }
+        return newEvent;
+    }
+
+    private void cloneRawEventSummaries(Event source, Event newEvent) {
+        List<String> eventSummaries = source.getRawEventSummaries().stream().map(message -> message).collect(Collectors.toList());
+        newEvent.setRawEventSummaries(eventSummaries);
+    }
+
+    private void cloneRawWireMessages(Event source, Event newEvent) {
+        List<String> wireMessages = source.getRawWireMessages().stream().map(message -> message).collect(Collectors.toList());
+        newEvent.setRawWireMessages(wireMessages);
+    }
+
+    private void cloneMarkets(Event source, Event newEvent) throws Exception {
+        Map<String, Market> markets = new HashMap<>();
+        for (String marketId : source.getMarkets().keySet()) {
+            Market market = this.cloneMarket(source.getMarkets().get(marketId));
+            markets.put(marketId, market);
+        }
+        newEvent.setMarkets(markets);
+    }
+
+    private Market cloneMarket(Market source) throws Exception {
+        Market result = new Market();
+        this.copyProperties(result, source);
+        result.setOutcomes(this.cloneOutcomes(source));
+        return result;
+    }
+
+    private Map<String, Outcome> cloneOutcomes(Market source) throws Exception {
+        Map<String, Outcome> outcomes = new HashMap<>();
+        for (String outcomeId : source.getOutcomes().keySet()) {
+            Outcome outcome = this.cloneOutcome(source.getOutcomes().get(outcomeId));
+            outcomes.put(outcomeId, outcome);
+        }
+        return outcomes;
+    }
+
+    private Outcome cloneOutcome(Outcome source) throws Exception {
+        Outcome result = new Outcome();
+        this.copyProperties(result, source);
+        result.setPrice(source.getPrice().clone());
+        if (source.getPreviousPrices() != null) {
+            List<Price> previousPrices = source.getPreviousPrices().stream().map(Price::clone).collect(Collectors.toList());
+            result.setPreviousPrices(previousPrices);
+        }
+        return source;
+    }
+
+    protected void cloneCompetitors(Event source, Event newEvent) {
+        Map<String, Competitor> competitors = new HashMap<>();
+        for (String competitorId : source.getCompetitors().keySet()) {
+            competitors.put(competitorId, source.getCompetitors().get(competitorId).clone());
+        }
+        newEvent.setCompetitors(competitors);
+    }
+
     public void updateEvent(Event toUpdate, Event source) throws InvocationTargetException, IllegalAccessException {
         boolean bettingEnabled = toUpdate.isBettingEnabled(); // we don't want to overwrite this variable!!
         this.copyProperties(toUpdate, source);

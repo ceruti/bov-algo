@@ -2,9 +2,7 @@ package integration;
 
 import com.ceruti.bov.*;
 import com.ceruti.bov.model.*;
-import com.ceruti.bov.util.EventParseUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
@@ -12,8 +10,6 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import lombok.AllArgsConstructor;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.bson.Document;
 import org.joda.time.DateTime;
@@ -35,8 +31,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,7 +39,6 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -55,7 +48,8 @@ import java.util.stream.Stream;
 public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a more stable class
 
     public static final String SIMULATION_PREFIX = "BASIC-WITH-TIME-CONTROLS-ALLOW_TENNIS";
-    public static final int MINIMUM_PRICES_QUOTES = 75;
+    public static final int MINIMUM_ONE_SIDE_PRICE_QUOTES = 75;
+    public static final int MINIMUM_TOTAL_TICK_REQUIREMENT = 150;
 
     public StrategyAnalysisIntegrationTests() {}
 
@@ -83,24 +77,20 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
     @Autowired
     SimulatedEventRepository simulatedEventRepository;
 
-    ExecutorService executorService = Executors.newFixedThreadPool(40);
+    @Autowired
+    NullAwareBeanUtilsBean nullAwareBeanUtilsBean;
+
+    ExecutorService executorService = Executors.newFixedThreadPool(50);
 
     private Set<Long> simulatedEventIds = new HashSet<>();
 
-    @Test
+//    @Test
     public void testMoneylineMarketSwitchover() {
         Query query = new Query();
         query.addCriteria(Criteria.where("_id").is(123456L));
         Event event = mongoTemplate.findOne(query, Event.class, "event");
         event.setId(7665224L);
         mongoTemplate.save(event, "event");
-    }
-
-//    @Test
-//    @Ignore
-    public void renameCollection() {
-        eventBook.setEnableUpdates(false);
-        mongoTemplate.getDb().getCollection("bettingExecutionMetaResults-1598637977138").rename("meta");
     }
 
 //    @Test
@@ -142,9 +132,13 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
 
     protected void runSimulation(String simulationName, Query query) throws Exception {
         List<Event> events = mongoTemplate.find(query, Event.class, "event");
+        runSimulation(simulationName, events);
+    }
+
+    protected void runSimulation(String simulationName, List<Event> events) throws Exception {
         List<Callable<Boolean>> processChunks = chopped(events, 100)
                 .stream()
-                .map(eventChunk -> simulateCallable(eventChunk))
+                .map(this::simulateCallable)
                 .collect(Collectors.toList());
         executorService.invokeAll(processChunks);
         String collectionName = "bettingExecutionMetaResults-" + simulationName + new DateTime().getMillis();
@@ -166,7 +160,7 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
         };
     }
 
-    protected void simluateStrategy(List<Event> events) {
+    protected void simluateStrategy(List<Event> events) throws Exception {
         List<BettingExecutionMetaResults> bettingExecutionMetaResultsBuffer = new ArrayList<>();
         for (int i=0; i<events.size(); i++) {
             if (i % 100 == 0) {
@@ -187,9 +181,10 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
                                 List<Price> previousPrices2 = outcome2.getPreviousPrices();
                                 if (previousPrices1 != null
                                     && previousPrices2 != null
-                                    && previousPrices1.size() > MINIMUM_PRICES_QUOTES
-                                    && previousPrices2.size() > MINIMUM_PRICES_QUOTES) {
-                                    BettingExecutionMetaResults bettingExecutionMetaResults = simulateBettingStrategy(event, market, outcome1, outcome2, previousPrices1, previousPrices2);
+                                    && previousPrices1.size() > MINIMUM_ONE_SIDE_PRICE_QUOTES
+                                    && previousPrices2.size() > MINIMUM_ONE_SIDE_PRICE_QUOTES) {
+                                    Event clonedEvent = nullAwareBeanUtilsBean.cloneEvent(event);
+                                    BettingExecutionMetaResults bettingExecutionMetaResults = simulateBettingStrategy(clonedEvent, market, outcome1, outcome2, previousPrices1, previousPrices2);
                                     if (bettingExecutionMetaResults != null) {
                                         simulatedEventIds.add(event.getId());
                                         bettingExecutionMetaResultsBuffer.add(bettingExecutionMetaResults);
@@ -210,12 +205,12 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
         }
     }
 
-    @Test
+//    @Test
     public void testComputeAggregation() throws Exception {
         computeAggregation("meta");
     }
 
-    @Test
+//    @Test
     public void backfillMedianAggregations() throws Exception {
         List<SimulationAggregateResult> simulationAggregations = mongoTemplate.findAll(SimulationAggregateResult.class, "simulationAggregations");
         for (SimulationAggregateResult simulationAggregation : simulationAggregations) {
@@ -438,7 +433,7 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
     }
 
     private BettingExecutionMetaResults executeBettingStrategy(Event event, Market market, Outcome outcome1, Outcome outcome2, List<OutcomeAndPriceTick> outcomeAndPriceTicks, String winningOutcomeId) {
-        if (outcomeAndPriceTicks.size() < 150) {
+        if (outcomeAndPriceTicks.size() < MINIMUM_TOTAL_TICK_REQUIREMENT) {
             return null;
         }
         BettingExecutionMetaResults bettingExecutionMetaResults = new BettingExecutionMetaResults(event, market, outcome1, outcome2, winningOutcomeId);
