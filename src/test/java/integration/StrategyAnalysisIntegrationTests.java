@@ -428,7 +428,7 @@ public class StrategyAnalysisIntegrationTests { // TODO: factor this out into a 
 
         Integer finalPriceOutcome2Index = priceIdToOriginalWireMesageIndex.get(outcome2.getPrice().getId());
         if (finalPriceOutcome2Index != null) {
-            outcomeAndPriceTicks[finalPriceOutcome2Index] = new OutcomeAndPriceTick(outcome2, outcome1.getPrice());
+            outcomeAndPriceTicks[finalPriceOutcome2Index] = new OutcomeAndPriceTick(outcome2, outcome2.getPrice());
         }
 
         List<OutcomeAndPriceTick> result = Arrays.stream(outcomeAndPriceTicks)

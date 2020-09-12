@@ -2,6 +2,7 @@ package com.ceruti.bov;
 
 import com.ceruti.bov.model.*;
 import com.ceruti.bov.strategy.BettingStrategyService;
+import com.ceruti.bov.util.ActiveProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -23,19 +24,22 @@ public class BettingFacilitatorService {
     private EventBook eventBook;
     private BetPlacingService betPlacingService;
     private SimpMessagingTemplate template;
+    private ActiveProfileService activeProfileService;
 
     @Autowired
     public BettingFacilitatorService(BetPlacingService betPlacingService,
                                      SimpMessagingTemplate simpMessagingTemplate,
                                      EventBook eventBook,
                                      SharedExecutorService sharedExecutorService,
-                                     BettingStrategyService bettingStrategyService) {
+                                     BettingStrategyService bettingStrategyService,
+                                     ActiveProfileService activeProfileService) {
         this.betPlacingService = betPlacingService;
         this.template = simpMessagingTemplate;
         this.eventBook = eventBook;
         this.sharedExecutorService = sharedExecutorService;
         this.customBetPlacingExecutorService = Executors.newFixedThreadPool(2);
         this.bettingStrategyService = bettingStrategyService;
+        this.activeProfileService = activeProfileService;
     }
 
     public void attemptPlaceCustomBetAsync(Long eventId, String marketId, String outcomeId, String opposingOutcomeId, Price price, int amountInCents) {
@@ -98,6 +102,8 @@ public class BettingFacilitatorService {
         String lessProfitableOutcomeDescription = market.getOutcomes().get(lessProfitableOutcomeId).getDescription();
         Price opposingPrice = market.getOutcomes().get(opposingOutcomeId).getPrice();
         String opposingPriceId = opposingPrice == null ? null : opposingPrice.getId();
+        String period = event.getClock() != null ? event.getClock().getPeriod() : "";
+        String gameTime = event.getClock() != null ? event.getClock().getGameTime() : "";
         String betPlaced = String.format("############################################\n" +
                         "NEW BET:\n" +
                         "\teventId: %d\n" +
@@ -109,6 +115,13 @@ public class BettingFacilitatorService {
                         "\toutcomePriceId: %s\n" +
                         "\topposingOutcomePriceId: %s\n" +
                         "----------------\n" +
+                        "\tHome Score: %s\n" +
+                        "\tVisitor Score: %s\n" +
+                        "\tHome Period Score: %d\n"+
+                        "\tVisitor Period Score %d\n"+
+                        "\tPeriod: %s\n"+
+                        "\tGame Time: %s\n"+
+                        "----------------\n"+
                         "TOTALS:\n" +
                         "\tminimumProfit (%s wins): %.2f\n" +
                         "\tmaximumProfit (%s wins): %.2f\n" +
@@ -121,6 +134,12 @@ public class BettingFacilitatorService {
                 outcome.getDescription(),
                 outcome.getPrice().getId(),
                 opposingPriceId,
+                event.getHomeScore(),
+                event.getVisitorScore(),
+                event.getCurrentPeriodHomeScore(),
+                event.getCurrentPeriodVisitorScore(),
+                period,
+                gameTime,
                 lessProfitableOutcomeDescription,
                 bettingSession.getMinimumProfit(),
                 moreProfitableOutcomeDescription,
@@ -135,7 +154,7 @@ public class BettingFacilitatorService {
 
 
     public void updateBettingSession(Event event, Market market, Outcome outcome, Outcome opposingOutcome, Price price) {
-        if (!event.isBettingEnabled() || !outcome.isBettingEnabled() || event.isEndingSoon()) {
+        if (!event.isBettingEnabled() || !outcome.isBettingEnabled() || endingSoon(event)) {
             return;
         }
         synchronized (market) { // don't want multiple threads making bets on the same thing
@@ -146,7 +165,10 @@ public class BettingFacilitatorService {
             // TODO: figure out startedRecently() flag behavior
             if (bettingSession == null /*&& event.startedRecently()*/
                     && (outcome.isForceBettingEnabled() ||
-                        (!eventBook.isOnInitiateBettingSessionBlacklist(event) && price.getAmerican() > DEFAULT_LOWER_BOUND_MONEYLINE_ENTRY && price.getAmerican() < DEFAULT_UPPER_BOUND_MONEYLINE_ENTRY)
+                        (!eventBook.isOnInitiateBettingSessionBlacklist(event)
+                                && price.getAmerican() < 0 && price.getAmerican() >= -250 // favorite first
+//                            && price.getAmerican() > 0 && price.getAmerican() < 300 // underdog first
+                        )
                     )
             ) {
                 attemptInitBettingSession(event, market, outcome, opposingOutcome, price);
@@ -158,6 +180,10 @@ public class BettingFacilitatorService {
                 }
             }
         }
+    }
+
+    protected boolean endingSoon(Event event) { // only turn off auto-betting in simulation mode. For live betting... just pay attention to the game clock
+        return activeProfileService.isTestMode() && event.isEndingSoon();
     }
 
 }

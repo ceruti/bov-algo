@@ -20,7 +20,7 @@ public class SportLogicUtil {
     private static final int AMERICAN_FOOTBALL_FINAL_QUARTER_MINUTES_THRESHOLD = 4;
 
     private static final int BASKERTBALL_FIRST_QUARTER_MINUTE_THRESHOLD = 5;
-    private static final int BASKETBALL_FOURTH_QUARTER_MINUTES_THRESHOLD = 2;
+    private static final int BASKETBALL_FOURTH_QUARTER_MINUTES_THRESHOLD = 1;
 
     private static final int HOCKEY_FIRST_PERIOD_MINUTE_THRESHOLD = 12;
     private static final int HOCKEY_THIRD_PERIOD_MINUTES_THRESHOLD = 8;
@@ -58,7 +58,7 @@ public class SportLogicUtil {
     public static boolean isEndingSoon(Event event) {
         switch(EventBook.getEquivalentKey(event.getSport())) {
             case "TENNIS":
-                return isTennisEventEndingSoon(event);
+                return false; // TOO DIFFICULT TO DETECT
             case "HOCKEY":
                 return isHockeyEventEndingSoon(event);
             case "SOCCER":
@@ -142,7 +142,7 @@ public class SportLogicUtil {
         if (event.getClock() == null) {
             return false;
         }
-        return event.getClock().getPeriodNumber() == event.getClock().getNumberOfPeriods();
+         return event.getClock().getPeriodNumber() >= event.getClock().getNumberOfPeriods();
     }
 
     private static boolean isFirstPeriod(Event event) {
