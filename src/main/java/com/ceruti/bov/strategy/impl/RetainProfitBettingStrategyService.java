@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Profile("strategy-retain_profits")
+@Deprecated
 public class RetainProfitBettingStrategyService extends AggressiveBettingStrategyService {
 
     @Override

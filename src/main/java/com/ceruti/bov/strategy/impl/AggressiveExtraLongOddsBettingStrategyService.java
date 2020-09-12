@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Profile("strategy-aggressive_extra_long_odds")
+@Deprecated
 public class AggressiveExtraLongOddsBettingStrategyService extends AggressiveBettingStrategyService {
 
     private static final int LOWER_BOUNDARY_FOR_ADDITIONAL_BET = 175;

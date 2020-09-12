@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Profile("strategy-account-for-minimum-profit")
 @Component
+@Deprecated
 public class AccountForCurrentMinimumProfitBettingStrategyService extends VariableAmount_BettingStrategyService {
 
     private static final double SOFTENING_FACTOR = 300.0; // TODO: higher for hedges against original favorite bet, lower for hedges against original underdog

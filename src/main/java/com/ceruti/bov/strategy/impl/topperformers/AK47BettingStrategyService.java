@@ -9,6 +9,7 @@ import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 
 @Profile("strategy-ak47")
 @Component
+@Deprecated
 public class AK47BettingStrategyService extends VariableAmount_BettingStrategyService {
 
     private static final double SOFTENING_FACTOR = 7.0; // TODO: change this? increasing will decrease typical wager amount

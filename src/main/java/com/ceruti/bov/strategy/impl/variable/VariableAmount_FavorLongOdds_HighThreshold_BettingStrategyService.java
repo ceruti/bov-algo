@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Profile("strategy-variable_amount_favor_long_high_threshold")
 @Component
+@Deprecated
 public class VariableAmount_FavorLongOdds_HighThreshold_BettingStrategyService extends VariableAmount_FavorLongOdds_BettingStrategyService {
 
     private static final int LOWER_BOUNDARY_FOR_ADDITIONAL_BET = 150;

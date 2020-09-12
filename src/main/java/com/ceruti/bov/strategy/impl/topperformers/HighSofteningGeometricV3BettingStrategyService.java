@@ -9,6 +9,7 @@ import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 
 @Profile("strategy-high_softening_geometric_v3")
 @Component
+@Deprecated
 public class HighSofteningGeometricV3BettingStrategyService extends VariableAmount_BettingStrategyService {
 
     private static final double SOFTENING_FACTOR = 250.0; // TODO: change this? increasing will decrease typical wager amount

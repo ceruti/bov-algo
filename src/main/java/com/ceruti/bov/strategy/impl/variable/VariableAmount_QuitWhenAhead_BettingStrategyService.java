@@ -5,6 +5,7 @@ import com.ceruti.bov.strategy.BettingStrategyService;
 
 import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 
+@Deprecated
 public abstract class VariableAmount_QuitWhenAhead_BettingStrategyService extends VariableAmount_BettingStrategyService {
 
     private static final double SOFTENING_FACTOR = 5.0; // TODO: change this? increasing will decrease typical wager amount

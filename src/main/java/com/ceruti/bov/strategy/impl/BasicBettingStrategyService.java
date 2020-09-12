@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 // for control group in simulations
 @Component
 @Profile("strategy-basic")
+@Deprecated
 public class BasicBettingStrategyService extends BettingStrategyService {
 
 

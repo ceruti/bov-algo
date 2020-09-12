@@ -9,6 +9,7 @@ import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 
 @Profile("strategy-high_softening_allow_negative")
 @Component
+@Deprecated
 public class HighSoftening_AllowNegativeMoneylineHedge_BettingStrategyService extends VariableAmount_BettingStrategyService {
 
     private static final double LINEAR_SOFTENING_FACTOR = 1800; // TODO: change this? increasing will decrease typical wager amount

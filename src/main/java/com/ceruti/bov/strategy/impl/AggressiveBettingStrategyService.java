@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Profile("strategy-aggressive")
 @Component
+@Deprecated
 public class AggressiveBettingStrategyService extends BettingStrategyService {
 
     @Override

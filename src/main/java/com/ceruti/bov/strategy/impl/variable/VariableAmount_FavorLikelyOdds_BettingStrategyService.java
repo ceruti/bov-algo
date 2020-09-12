@@ -8,6 +8,7 @@ import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 
 @Profile("strategy-variable_amount_favor_likely")
 @Component
+@Deprecated
 public class VariableAmount_FavorLikelyOdds_BettingStrategyService extends VariableAmount_BettingStrategyService {
 
     private static final double SOFTENING_FACTOR = 2.0; // TODO: change this? increasing will decrease typical wager amount, which effectively means more bets per session

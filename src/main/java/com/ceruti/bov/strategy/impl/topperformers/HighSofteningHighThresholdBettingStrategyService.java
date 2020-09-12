@@ -9,6 +9,7 @@ import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 
 @Profile("strategy-high_softening_high_threshold")
 @Component
+@Deprecated
 public class HighSofteningHighThresholdBettingStrategyService extends VariableAmount_BettingStrategyService {
 
     private static final int LOWER_BOUNDARY_FOR_ADDITIONAL_BET = 100;

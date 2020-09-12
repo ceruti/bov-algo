@@ -9,6 +9,7 @@ import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 
 @Profile("strategy-account-for-minimum-profit-aggressive")
 @Component
+@Deprecated
 public class AccountForCurrentMinimumProfitBettingStrategyServiceAggressive extends AccountForCurrentMinimumProfitBettingStrategyService {
 
     @Override

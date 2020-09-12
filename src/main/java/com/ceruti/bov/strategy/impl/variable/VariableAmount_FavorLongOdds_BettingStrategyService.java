@@ -8,6 +8,7 @@ import static com.ceruti.bov.BettingFacilitatorService.INIT_BET;
 
 @Profile("strategy-variable_amount_favor_long")
 @Component
+@Deprecated
 public class VariableAmount_FavorLongOdds_BettingStrategyService extends VariableAmount_BettingStrategyService {
 
     private static final double SOFTENING_FACTOR = 7.0; // TODO: change this? increasing will decrease typical wager amount
